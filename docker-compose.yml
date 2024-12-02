@@ -1,0 +1,114 @@
+version: '3.9'
+
+services:
+
+  library-api:
+    container_name: library-api
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    entrypoint: ["/app/docker-entrypoint.sh"]
+    volumes:
+      - .:/app
+    ports:
+      - "8004:8004"
+    env_file:
+      - ./.env
+    depends_on:
+      - library-db
+      - library-message-broker
+      - library-redis
+      - library-s3-storage
+    networks:
+      - library-net
+
+  library-db:
+    container_name: library-db
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5436:5432"
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - library-net
+
+  library-message-broker:
+    container_name: library-message-broker
+    image: rabbitmq:3.13.4-management
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - library-net
+
+  library-redis:
+    container_name: library-redis
+    image: redis:5.0.7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+    volumes:
+      - redis_data:/data
+    networks:
+      - library-net
+
+  library-s3-storage:
+    container_name: minio
+    image: docker.io/bitnami/minio:2024
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
+      - MINIO_URL=${MINIO_URL}
+    volumes:
+      - minio_data:/bitnami/minio/data
+    networks:
+      - library-net
+
+  test-db:
+    container_name: test-db
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5437:5432"
+    environment:
+      - POSTGRES_USER=${TEST_DB_USERNAME}
+      - POSTGRES_PASSWORD=${TEST_DB_PASSWORD}
+      - POSTGRES_DB=${TEST_DB_DATABASE}
+    volumes:
+      - test-postgres_data:/var/lib/postgresql/data/
+    networks:
+      - library-net
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  redis_data:
+  minio_data:
+    driver: local
+  test-postgres_data:
+
+networks:
+  library-net:
+    external: false
