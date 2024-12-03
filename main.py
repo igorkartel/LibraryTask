@@ -1,15 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from exception_handlers.minio_s3_exc_handlers import register_minio_exception_handlers
+
 # from configs.exception_handlers import register_exception_handlers
 # from controllers.routers import auth_routes, healthcheck_route, user_routes, users_route
 
 app = FastAPI()
 
 
-# register_exception_handlers(app)
-#
-#
+register_minio_exception_handlers(app)
+
+
 # app.include_router(healthcheck_route.router)
 # app.include_router(auth_routes.router)
 # app.include_router(user_routes.router)
