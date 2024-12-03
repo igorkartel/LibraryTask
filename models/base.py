@@ -20,3 +20,11 @@ genre_book_association = Table(
     Column("book_id", ForeignKey("books.id", ondelete="CASCADE"), primary_key=True),
     Column("genre_id", ForeignKey("genres.id", ondelete="CASCADE"), primary_key=True),
 )
+
+
+order_book_association = Table(
+    "order_book_association",
+    BaseModel.metadata,
+    Column("order_id", ForeignKey("orders.id"), primary_key=True),
+    Column("book_id", ForeignKey("books.id"), primary_key=True),
+)

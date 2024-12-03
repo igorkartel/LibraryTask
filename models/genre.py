@@ -17,3 +17,6 @@ class Genre(BaseModel):
         secondary=genre_book_association,
         back_populates="genres",
     )
+
+    def __str__(self):
+        return self.genre
