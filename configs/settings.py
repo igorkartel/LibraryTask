@@ -29,7 +29,8 @@ class Settings(BaseSettings):
     RABBITMQ_PORT: int
     RABBITMQ_USER: str
     RABBITMQ_PASSWORD: str
-    RABBITMQ_QUEUE_NAME: str
+    RABBITMQ_RESET_PASSWORD_QUEUE: str
+    RABBITMQ_REMINDER_QUEUE: str
     RESET_PASSWORD_LINK: str
     # Test_database
     TEST_DB_USERNAME: str

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class Genre(BaseModel):
     __tablename__ = "genres"
 
-    genre: Mapped[str] = mapped_column(nullable=False)
+    name: Mapped[str] = mapped_column(nullable=False)
     books: Mapped[list["Book"]] = relationship(
         "Book",
         secondary=genre_book_association,
@@ -19,4 +19,4 @@ class Genre(BaseModel):
     )
 
     def __str__(self):
-        return self.genre
+        return self.name

@@ -17,13 +17,14 @@ class Author(BaseModel):
     surname: Mapped[str] = mapped_column(nullable=False)
     nationality: Mapped[str] = mapped_column(nullable=False)
     photo_s3_url: Mapped[Optional[str]] = mapped_column(default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+
     books: Mapped[list["Book"]] = relationship(
         "Book",
         secondary=author_book_association,
         back_populates="authors",
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
 
     def __str__(self):
-        return f"{self.name} {self.surname}"
+        return f"{self.surname} {self.name}"
