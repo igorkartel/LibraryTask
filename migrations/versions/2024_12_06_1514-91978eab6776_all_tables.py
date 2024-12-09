@@ -1,8 +1,8 @@
 """all tables
 
-Revision ID: ca7ea9f0d529
+Revision ID: 91978eab6776
 Revises:
-Create Date: 2024-12-03 13:05:43.933189
+Create Date: 2024-12-06 15:14:06.084188
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "ca7ea9f0d529"
+revision: str = "91978eab6776"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -35,12 +35,8 @@ def upgrade() -> None:
         "books",
         sa.Column("title_rus", sa.String(), nullable=False),
         sa.Column("title_origin", sa.String(), nullable=True),
-        sa.Column("imprint_year", sa.Integer(), nullable=False),
-        sa.Column("pages", sa.Integer(), nullable=False),
-        sa.Column("cover_s3_url", sa.String(), nullable=True),
-        sa.Column("value", sa.DECIMAL(precision=10, scale=2), nullable=False),
-        sa.Column("price_per_day", sa.DECIMAL(precision=10, scale=2), nullable=False),
         sa.Column("quantity", sa.Integer(), nullable=False),
+        sa.Column("available_for_loan", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
@@ -48,7 +44,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "genres",
-        sa.Column("genre", sa.String(), nullable=False),
+        sa.Column("name", sa.String(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -57,7 +53,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(), nullable=False),
         sa.Column("fathers_name", sa.String(), nullable=False),
         sa.Column("surname", sa.String(), nullable=False),
-        sa.Column("passport_nr", sa.String(), nullable=False),
+        sa.Column("passport_nr", sa.String(), nullable=True),
         sa.Column("date_of_birth", sa.Date(), nullable=False),
         sa.Column("email", sa.String(), nullable=False),
         sa.Column("address", sa.String(), nullable=False),
@@ -75,7 +71,7 @@ def upgrade() -> None:
         sa.Column("username", sa.String(), nullable=False),
         sa.Column("password", sa.String(), nullable=False),
         sa.Column("email", sa.String(), nullable=False),
-        sa.Column("role", sa.String(), nullable=False),
+        sa.Column("role", sa.Enum("ADMIN", "LIBRARIAN", name="userroleenum"), nullable=False),
         sa.Column("is_blocked", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
@@ -93,6 +89,24 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("book_id", "author_id"),
     )
     op.create_table(
+        "book_instances",
+        sa.Column("book_id", sa.Integer(), nullable=False),
+        sa.Column("imprint_year", sa.Integer(), nullable=True),
+        sa.Column("pages", sa.Integer(), nullable=True),
+        sa.Column("cover_s3_url", sa.String(), nullable=True),
+        sa.Column("value", sa.DECIMAL(precision=10, scale=2), nullable=False),
+        sa.Column("price_per_day", sa.DECIMAL(precision=10, scale=2), nullable=False),
+        sa.Column("status", sa.Enum("AVAILABLE", "LOANED", "LOST", name="bookstatusenum"), nullable=False),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), nullable=False),
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["book_id"],
+            ["books.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_table(
         "genre_book_association",
         sa.Column("book_id", sa.Integer(), nullable=False),
         sa.Column("genre_id", sa.Integer(), nullable=False),
@@ -101,62 +115,42 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("book_id", "genre_id"),
     )
     op.create_table(
-        "loans",
-        sa.Column("reader_id", sa.Integer(), nullable=False),
-        sa.Column("book_id", sa.Integer(), nullable=False),
-        sa.Column("issue_date", sa.Date(), nullable=False),
-        sa.Column("due_date", sa.Date(), nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=False),
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["book_id"],
-            ["books.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["reader_id"],
-            ["readers.id"],
-        ),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("reader_id", "book_id", name="unique_reader_book"),
-    )
-    op.create_table(
         "orders",
         sa.Column("reader_id", sa.Integer(), nullable=False),
         sa.Column("order_date", sa.Date(), nullable=False),
-        sa.Column("return_date", sa.Date(), nullable=False),
+        sa.Column("status", sa.Enum("ACTIVE", "CLOSED", name="orderstatusenum"), nullable=False),
+        sa.Column("planned_return_date", sa.Date(), nullable=False),
+        sa.Column("fact_return_date", sa.Date(), nullable=False),
+        sa.Column("overdue_cost", sa.DECIMAL(precision=10, scale=2), nullable=False),
+        sa.Column("damaged_books", sa.Integer(), nullable=False),
+        sa.Column("damage_cost", sa.DECIMAL(precision=10, scale=2), nullable=False),
+        sa.Column("lost_books", sa.Integer(), nullable=False),
+        sa.Column("lost_cost", sa.DECIMAL(precision=10, scale=2), nullable=False),
         sa.Column("total_cost", sa.DECIMAL(precision=10, scale=2), nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["reader_id"],
             ["readers.id"],
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("reader_id", "order_date", name="unique_reader_order"),
     )
     op.create_table(
-        "order_book_association",
+        "order_book_instance_association",
         sa.Column("order_id", sa.Integer(), nullable=False),
-        sa.Column("book_id", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["book_id"],
-            ["books.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["order_id"],
-            ["orders.id"],
-        ),
-        sa.PrimaryKeyConstraint("order_id", "book_id"),
+        sa.Column("book_instance_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(["book_instance_id"], ["book_instances.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["order_id"], ["orders.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("order_id", "book_instance_id"),
     )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table("order_book_association")
+    op.drop_table("order_book_instance_association")
     op.drop_table("orders")
-    op.drop_table("loans")
     op.drop_table("genre_book_association")
+    op.drop_table("book_instances")
     op.drop_table("author_book_association")
     op.drop_table("users")
     op.drop_table("readers")
