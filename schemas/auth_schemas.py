@@ -1,4 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field
+from fastapi import HTTPException
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from starlette import status
 
 
 class Token(BaseModel):
@@ -12,10 +14,17 @@ class TokenData(BaseModel):
 
 
 class UserForgotPasswordSchema(BaseModel):
-    email: EmailStr = Field(example="user@example.com")
+    email: EmailStr
 
 
 class UserResetPasswordSchema(BaseModel):
     reset_token: str
     new_password: str = Field(min_length=8)
     confirm_new_password: str = Field(min_length=8)
+
+    @field_validator("confirm_new_password")
+    def passwords_match(cls, confirm_new_password: str, values):
+        new_password = values.get("new_password")
+        if new_password != confirm_new_password:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
+        return confirm_new_password
