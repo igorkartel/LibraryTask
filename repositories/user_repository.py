@@ -21,3 +21,7 @@ class UserRepository(AbstractUserRepository):
         result = await self.db.execute(select(User).where(User.email == email))
         user = result.unique().scalars().first()
         return user if user else None
+
+    # async def update_user_password(self, new_credentials: UserResetPasswordSchema):
+    #     await update_user_password_service(self.db, new_credentials)
+    #     return {"message": "Your password was successfully changed"}

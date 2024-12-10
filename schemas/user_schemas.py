@@ -24,7 +24,7 @@ class UserCreateSchema(UserBaseSchema):
 
 
 class UserReadSchema(UserBaseSchema):
-    # id: int
+    id: int
     name: str
     surname: str
     username: str
