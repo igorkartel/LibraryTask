@@ -5,19 +5,15 @@ from pydantic import BaseModel
 from schemas.book_schemas import BookReadSchema
 
 
-class GenreBaseSchema(BaseModel):
-    id: int
+class GenreCreateSchema(BaseModel):
+    name: str
 
     class Config:
         from_attributes = True
 
 
-class GenreCreateSchema(GenreBaseSchema):
-    name: str
-
-
 class GenreReadSchema(GenreCreateSchema):
-    pass
+    id: int
 
 
 class GenreWithBooksReadSchema(GenreReadSchema):

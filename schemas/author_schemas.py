@@ -7,7 +7,6 @@ from schemas.book_schemas import BookReadSchema
 
 
 class AuthorBaseSchema(BaseModel):
-    id: int
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
@@ -23,7 +22,7 @@ class AuthorCreateSchema(AuthorBaseSchema):
 
 
 class AuthorReadSchema(AuthorCreateSchema):
-    pass
+    id: int
 
 
 class AuthorWithBooksReadSchema(AuthorReadSchema):

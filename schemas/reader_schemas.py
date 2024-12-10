@@ -5,7 +5,6 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class ReaderBaseSchema(BaseModel):
-    id: int
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
@@ -24,7 +23,7 @@ class ReaderCreateSchema(ReaderBaseSchema):
 
 
 class ReaderReadSchema(ReaderCreateSchema):
-    pass
+    id: int
 
 
 class ReaderWithOrderSchema(ReaderReadSchema):

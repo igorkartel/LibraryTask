@@ -9,7 +9,6 @@ from schemas.genre_schemas import GenreReadSchema
 
 
 class BookBaseSchema(BaseModel):
-    id: int
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
@@ -35,6 +34,7 @@ class BookInstanceCreateSchema(BookBaseSchema):
 
 
 class BookReadSchema(BookCreateSchema):
+    id: int
     authors: List[AuthorReadSchema] = []
 
 
@@ -49,6 +49,7 @@ class BookInstanceReadSchema(BaseModel):
 
 
 class BookWithGenresInstancesReadSchema(BookCreateSchema):
+    id: int
     genres: List[GenreReadSchema] = []
     instances: List[BookInstanceReadSchema] = []
 

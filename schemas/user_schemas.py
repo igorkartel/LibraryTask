@@ -6,7 +6,6 @@ from models.user_role_enum import UserRoleEnum
 
 
 class UserBaseSchema(BaseModel):
-    id: int
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
@@ -25,6 +24,7 @@ class UserCreateSchema(UserBaseSchema):
 
 
 class UserReadSchema(UserBaseSchema):
+    # id: int
     name: str
     surname: str
     username: str
