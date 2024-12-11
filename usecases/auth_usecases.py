@@ -9,6 +9,7 @@ from jwt import ExpiredSignatureError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
+from starlette.responses import HTMLResponse
 
 from brokers.rabbitmq import send_message_to_rabbitmq
 from brokers.redis import add_refresh_token_to_blacklist, is_refresh_token_blacklisted
@@ -30,9 +31,12 @@ from exception_handlers.auth_exc_handlers import TokenError
 from exception_handlers.user_exc_handlers import UserAlreadyExists, UserDoesNotExist
 from models import User
 from repositories.user_repository import UserRepository
-from schemas.auth_schemas import Token, UserForgotPasswordSchema
+from schemas.auth_schemas import (
+    Token,
+    UserForgotPasswordSchema,
+    UserResetPasswordSchema,
+)
 from schemas.user_schemas import UserCreateSchema
-from usecases.user_usecases import UserUseCase
 
 
 class AuthUseCase:
@@ -130,19 +134,18 @@ class AuthUseCase:
             logger.error(str(exc))
             raise
 
-    async def forgot_password(self, user_email: UserForgotPasswordSchema, db: AsyncSession):
+    async def forgot_password(self, user_email: UserForgotPasswordSchema):
         try:
             email = user_email.email
-            usecase = UserUseCase(user_repository=UserRepository(db))
-            user = await usecase.get_user_by_email(email=email)
+            user = await self.user_repository.get_user_by_email(email=email)
 
             if not user:
                 raise UserDoesNotExist(
                     message=f"User with email '{email}' does not exist. Please check the correctness of email."
                 )
 
-            reset_token = create_reset_password_token(email)
-            reset_password_link = create_reset_password_link(reset_token)
+            reset_token = create_reset_password_token(email=email)
+            reset_password_link = create_reset_password_link(reset_token=reset_token)
 
             message_payload = {
                 "user_id": str(user.id),
@@ -164,69 +167,65 @@ class AuthUseCase:
             logger.error(str(exc))
             raise
 
-    # async def reset_password_template(reset_token: str):
-    #     try:
-    #         payload = jwt.decode(reset_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    #         email: str = payload.get("sub")
-    #         if email is None:
-    #             raise TokenError(message="Invalid token")
-    #
-    #         reset_password_form = f"""
-    #             <html>
-    #                 <head>
-    #                     <title>Reset Password</title>
-    #                 </head>
-    #                 <body>
-    #                     <h1>Reset Password</h1>
-    #                     <form action="/auth/reset-password" method="post">
-    #                         <input type="hidden" name="reset_token" value="{reset_token}" />
-    #                         <label for="new_password">New Password:</label>
-    #                         <input type="password" id="new_password" name="new_password" required minlength="8"/>
-    #                         <br/>
-    #                         <label for="confirm_new_password">Confirm New Password:</label>
-    #                         <input type="password" id="confirm_new_password" name="confirm_new_password" required minlength="8"/>
-    #                         <br/>
-    #                         <button type="submit">Reset Password</button>
-    #                     </form>
-    #                 </body>
-    #             </html>
-    #             """
-    #
-    #         return HTMLResponse(content=reset_password_form)
-    #     except ExpiredSignatureError as e:
-    #         logger.error(str(e))
-    #         raise TokenError(message="Token expired")
-    #     except Exception as e:
-    #         logger.error(str(e))
-    #         raise
-    #
-    # async def update_user_password(
-    #         db: Annotated[AsyncSession, Depends(db_session)], new_credentials: UserResetPasswordSchema
-    # ):
-    #     try:
-    #         payload = jwt.decode(new_credentials.reset_token, SECRET_KEY, algorithms=[ALGORITHM])
-    #         email: str = payload.get("sub")
-    #         if email is None:
-    #             raise TokenError(message="Invalid token")
-    #         new_password = new_credentials.new_password
-    #         confirm_new_password = new_credentials.confirm_new_password
-    #         if new_password != confirm_new_password:
-    #             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
-    #         result = await db.execute(select(User).where(User.email == email))
-    #         user_to_update = result.scalars().first()
-    #         if not user_to_update:
-    #             raise UserDoesNotExist(message=f"User with email '{email}' does not exist")
-    #         new_hashed_password = get_password_hash(new_password)
-    #         user_to_update.password = new_hashed_password
-    #         await db.commit()
-    #         await db.refresh(user_to_update)
-    #         return {"message": "Your password was successfully changed"}
-    #     except SQLAlchemyError as e:
-    #         logger.error(f"Failed to update password: {str(e)}")
-    #         raise SQLAlchemyError
-    #     except ExpiredSignatureError as e:
-    #         logger.error(str(e))
-    #         raise TokenError(message="Token expired")
-    #     except Exception as e:
-    #         logger.error(str(e))
-    #         raise
+    async def get_reset_password_template(self, reset_token: str):
+        try:
+            payload = jwt.decode(reset_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+            email: str = payload.get("sub")
+
+            if email is None:
+                raise TokenError(message="Invalid token")
+
+            reset_password_form = f"""
+                <html>
+                    <head>
+                        <title>Reset Password</title>
+                    </head>
+                    <body>
+                        <h1>Reset Password</h1>
+                        <form action="/auth/reset-password" method="post">
+                            <input type="hidden" name="reset_token" value="{reset_token}" />
+                            <label for="new_password">New Password:</label>
+                            <input type="password" id="new_password" name="new_password" required minlength="8"/>
+                            <br/>
+                            <label for="confirm_new_password">Confirm New Password:</label>
+                            <input type="password" id="confirm_new_password" name="confirm_new_password" required minlength="8"/>
+                            <br/>
+                            <button type="submit">Reset Password</button>
+                        </form>
+                    </body>
+                </html>
+                """
+
+            return HTMLResponse(content=reset_password_form)
+
+        except ExpiredSignatureError as exc:
+            logger.error(str(exc))
+            raise TokenError(message="Token expired")
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
+    async def update_user_password(self, new_credentials: UserResetPasswordSchema):
+        try:
+            payload = jwt.decode(new_credentials.reset_token, SECRET_KEY, algorithms=[ALGORITHM])
+            email: str = payload.get("sub")
+
+            if email is None:
+                raise TokenError(message="Invalid token")
+
+            new_password = new_credentials.new_password
+            new_hashed_password = get_password_hash(new_password)
+
+            return await self.user_repository.update_user_password(
+                email=email, new_hashed_password=new_hashed_password
+            )
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to update password: {str(exc)}")
+            raise SQLAlchemyError
+        except ExpiredSignatureError as exc:
+            logger.error(str(exc))
+            raise TokenError(message="Token expired")
+        except Exception as exc:
+            logger.error(str(exc))
+            raise

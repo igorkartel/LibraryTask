@@ -1,12 +1,13 @@
 import redis.asyncio as aioredis
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import HTMLResponse
 
 from dependencies.db_dependency import db_session
 from dependencies.redis_dependency import get_redis_connection
 from dependencies.usecase_dependencies import get_auth_usecase
-from schemas.auth_schemas import UserForgotPasswordSchema
+from schemas.auth_schemas import UserForgotPasswordSchema, UserResetPasswordSchema
 from schemas.user_schemas import UserCreateSchema, UserReadSchema
 from usecases.auth_usecases import AuthUseCase
 
@@ -43,24 +44,26 @@ async def refresh_access_token(
 @router.post("/forgot-password")
 async def forgot_password(
     user_email: UserForgotPasswordSchema,
-    db: AsyncSession = Depends(db_session),
     usecase: AuthUseCase = Depends(get_auth_usecase),
 ):
     """Accepts the user’s email address, creates reset password token
     and publishes a message to RabbitMQ “reset-password-stream” queue"""
-    return await usecase.forgot_password(user_email=user_email, db=db)
+    return await usecase.forgot_password(user_email=user_email)
 
 
-# @router.get("/reset-password", response_class=HTMLResponse)
-# async def reset_password_template(reset_token: str = Query(..., alias="reset_token")):
-#     """Checks reset password token, when user follows the reset link"""
-#     return await reset_password_template_service(reset_token)
-#
-#
-# @router.post("/reset-password")
-# async def reset_password(
-#     user_repository: Annotated[UserRepository, Depends(get_user_repository)],
-#     new_credentials: UserResetPasswordSchema,
-# ):
-#     """Resets user's password checking refresh password token. Accepts new password and new password confirmation"""
-#     return await user_repository.update_user_password(new_credentials)
+@router.get("/reset-password", response_class=HTMLResponse)
+async def get_reset_password_template(
+    reset_token: str = Query(..., alias="reset_token"),
+    usecase: AuthUseCase = Depends(get_auth_usecase),
+):
+    """Checks reset password token, when user follows the reset link"""
+    return await usecase.get_reset_password_template(reset_token=reset_token)
+
+
+@router.post("/reset-password")
+async def reset_password(
+    new_credentials: UserResetPasswordSchema,
+    usecase: AuthUseCase = Depends(get_auth_usecase),
+):
+    """Resets user's password checking refresh password token. Accepts new password and new password confirmation"""
+    return await usecase.update_user_password(new_credentials=new_credentials)

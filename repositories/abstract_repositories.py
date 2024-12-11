@@ -40,6 +40,6 @@ class AbstractUserRepository(ABC):
     # async def delete_user(self, current_user):
     #     pass
     #
-    # @abstractmethod
-    # async def update_user_password(self, new_credentials):
-    #     pass
+    @abstractmethod
+    async def update_user_password(self, email, new_hashed_password):
+        pass
