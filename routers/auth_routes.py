@@ -14,7 +14,7 @@ from usecases.auth_usecases import AuthUseCase
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/create-user", response_model=UserReadSchema)
+@router.post("/signup", response_model=UserReadSchema)
 async def create_new_user(user_data: UserCreateSchema, usecase: AuthUseCase = Depends(get_auth_usecase)):
     """Allows admin to create a new user profile for non-authenticated user"""
     return await usecase.create_user(user_data=user_data)

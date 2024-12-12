@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from pydantic_core.core_schema import FieldValidationInfo
+from pydantic_core.core_schema import ValidationInfo
 from starlette import status
 
 
@@ -24,7 +24,7 @@ class UserResetPasswordSchema(BaseModel):
     confirm_new_password: str = Field(min_length=8)
 
     @field_validator("confirm_new_password")
-    def passwords_match(cls, confirm_new_password: str, values: FieldValidationInfo):
+    def passwords_match(cls, confirm_new_password: str, values: ValidationInfo):
         new_password = values.data.get("new_password")
         if new_password != confirm_new_password:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
