@@ -5,7 +5,7 @@ from exception_handlers.auth_exc_handlers import register_auth_exception_handler
 from exception_handlers.db_exc_handlers import register_db_exception_handlers
 from exception_handlers.minio_s3_exc_handlers import register_minio_exception_handlers
 from exception_handlers.user_exc_handlers import register_user_exception_handlers
-from routers import auth_routes
+from routers import auth_routes, user_routes
 
 app = FastAPI()
 
@@ -17,7 +17,7 @@ register_user_exception_handlers(app)
 
 # app.include_router(healthcheck_route.router)
 app.include_router(auth_routes.router)
-# app.include_router(user_routes.router)
+app.include_router(user_routes.router)
 # app.include_router(users_route.router)
 
 

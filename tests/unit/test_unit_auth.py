@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -14,7 +14,6 @@ from schemas.auth_schemas import (
     UserResetPasswordSchema,
 )
 from schemas.user_schemas import UserCreateSchema
-from tests.integration.conftest import mock_redis
 from usecases.auth_usecases import AuthUseCase
 
 

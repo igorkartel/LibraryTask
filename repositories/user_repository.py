@@ -13,6 +13,11 @@ class UserRepository(AbstractUserRepository):
         await self.db.refresh(new_user)
         return new_user
 
+    async def get_user_by_id(self, user_id: int) -> User | None:
+        result = await self.db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
+        return user if user else None
+
     async def get_user_by_username(self, username: str) -> User | None:
         result = await self.db.execute(select(User).where(User.username == username))
         user = result.unique().scalars().first()
@@ -22,6 +27,38 @@ class UserRepository(AbstractUserRepository):
         result = await self.db.execute(select(User).where(User.email == email))
         user = result.unique().scalars().first()
         return user if user else None
+
+    async def update_user(self, current_user_id: int, update_data: dict) -> User:
+        result = await self.db.execute(select(User).where(User.id == current_user_id))
+        user_to_update = result.scalars().first()
+
+        if not user_to_update:
+            raise UserDoesNotExist(message=f"User with id '{current_user_id}' does not exist")
+
+        for key, value in update_data.items():
+            setattr(user_to_update, key, value)
+
+        user_to_update.updated_at = func.now()
+
+        await self.db.commit()
+        await self.db.refresh(user_to_update)
+
+        return user_to_update
+
+    async def update_user_by_admin(self, user_id: int, update_data: dict) -> User:
+        result = await self.db.execute(select(User).where(User.id == user_id))
+        user_to_update = result.scalars().first()
+
+        if not user_to_update:
+            raise UserDoesNotExist(message=f"User with id '{user_id}' does not exist")
+
+        for key, value in update_data.items():
+            setattr(user_to_update, key, value)
+
+        await self.db.commit()
+        await self.db.refresh(user_to_update)
+
+        return user_to_update
 
     async def update_user_password(self, email: EmailStr, new_hashed_password: str):
         result = await self.db.execute(select(User).where(User.email == email))
