@@ -1,6 +1,6 @@
-from typing import List
+from typing import Annotated, List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from schemas.book_schemas import BookReadSchema
 
@@ -8,8 +8,7 @@ from schemas.book_schemas import BookReadSchema
 class GenreCreateSchema(BaseModel):
     name: str
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class GenreReadSchema(GenreCreateSchema):
@@ -17,7 +16,7 @@ class GenreReadSchema(GenreCreateSchema):
 
 
 class GenreWithBooksReadSchema(GenreReadSchema):
-    books: List[BookReadSchema] = []
+    books: Annotated[List[BookReadSchema], Field(default_factory=list)]
 
 
 class GenreUpdateSchema(BaseModel):

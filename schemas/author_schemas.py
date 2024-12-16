@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import Annotated, List
 
 from pydantic import BaseModel, Field
 
@@ -10,8 +10,7 @@ class AuthorBaseSchema(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class AuthorCreateSchema(AuthorBaseSchema):
@@ -26,7 +25,7 @@ class AuthorReadSchema(AuthorCreateSchema):
 
 
 class AuthorWithBooksReadSchema(AuthorReadSchema):
-    books: List[BookReadSchema] = []
+    books: Annotated[List[BookReadSchema], Field(default_factory=list)]
 
 
 class AuthorUpdateSchema(BaseModel):

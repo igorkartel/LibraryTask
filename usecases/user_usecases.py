@@ -6,7 +6,12 @@ from exception_handlers.auth_exc_handlers import PermissionDeniedError
 from exception_handlers.user_exc_handlers import UserDoesNotExist
 from models.user_role_enum import UserRoleEnum
 from repositories.user_repository import UserRepository
-from schemas.user_schemas import UserAdminUpdateSchema, UserReadSchema, UserUpdateSchema
+from schemas.user_schemas import (
+    UserAdminUpdateSchema,
+    UserListQueryParams,
+    UserReadSchema,
+    UserUpdateSchema,
+)
 
 
 class UserUseCase:
@@ -64,6 +69,20 @@ class UserUseCase:
             logger.error(str(exc))
             raise
 
+    async def get_all_users(self, request_payload: UserListQueryParams, current_user: UserReadSchema):
+        try:
+            if current_user.role != UserRoleEnum.ADMIN:
+                raise PermissionDeniedError(message="You have no permission to get the list of all users")
+
+            return await self.user_repository.get_all_users(request_payload=request_payload)
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to fetch users' list: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
     async def update_user(self, updated_data: UserUpdateSchema, current_user: UserReadSchema):
         try:
             update_data_dict = updated_data.model_dump(exclude_unset=True)
@@ -97,4 +116,18 @@ class UserUseCase:
             raise SQLAlchemyError
         except Exception as e:
             logger.error(str(e))
+            raise
+
+    async def delete_user(self, user_id: int, current_user: UserReadSchema):
+        try:
+            if current_user.role != UserRoleEnum.ADMIN:
+                raise PermissionDeniedError(message="You have no permission to update any User's data")
+
+            return await self.user_repository.delete_user(user_id=user_id)
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to delete user: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
             raise

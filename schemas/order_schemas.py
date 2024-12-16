@@ -21,11 +21,10 @@ class OrderCreateSchema(BaseModel):
     lost_cost: float = 0
     total_cost: float = 0
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
-class OrderReadSchema(BaseModel):
+class OrderWithoutReaderReadSchema(BaseModel):
     id: int
     order_date: date
     status: OrderStatusEnum
@@ -37,8 +36,11 @@ class OrderReadSchema(BaseModel):
     lost_books: int
     lost_cost: float
     total_cost: float
-    book_instances: List[BookInstanceReadSchema] = []
-    reader: Dict[ReaderReadSchema] = {}
+    book_instances: List[BookInstanceReadSchema]
+
+
+class OrderReadSchema(OrderWithoutReaderReadSchema):
+    reader: Dict[ReaderReadSchema]
 
 
 class OrderUpdateSchema(BaseModel):
