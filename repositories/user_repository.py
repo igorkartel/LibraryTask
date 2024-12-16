@@ -84,6 +84,8 @@ class UserRepository(AbstractUserRepository):
         for key, value in update_data.items():
             setattr(user_to_update, key, value)
 
+        user_to_update.updated_at = func.now()
+
         await self.db.commit()
         await self.db.refresh(user_to_update)
 
