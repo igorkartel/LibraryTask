@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jwt import PyJWTError
 from passlib.context import CryptContext
+from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -97,8 +98,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
 
         token_data = TokenData(username=username)
 
-    except PyJWTError as e:
-        logger.error(f"PyJWTError occurred: {str(e)}")
+    except PyJWTError as exc:
+        logger.error(f"PyJWTError occurred: {str(exc)}")
         raise credentials_exception
 
     user = await get_user(username=token_data.username, db=db)
@@ -117,12 +118,12 @@ async def get_current_active_user(current_user: UserReadSchema = Depends(get_cur
 
         return current_user
 
-    except Exception as e:
-        logger.error(str(e))
+    except Exception as exc:
+        logger.error(str(exc))
         raise
 
 
-def create_reset_password_token(email: str):
+def create_reset_password_token(email: EmailStr):
     to_encode = {"sub": email}
     expire = datetime.now() + timedelta(minutes=settings.RESET_PASSWORD_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})

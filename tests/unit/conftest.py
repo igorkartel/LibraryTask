@@ -32,6 +32,7 @@ def unit_test_user_in_db():
         password=get_password_hash("test_password"),
         email="test@example.com",
         role=UserRoleEnum.ADMIN.value,
+        is_blocked=False,
     )
 
 
@@ -51,4 +52,18 @@ def new_credentials():
         reset_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiZXhwIjo0MTAyNDQ0ODAwfQ.fz32glwCguoWDdSFQc3UxRIHlPG_2FE2nrB9AuB0BDk",
         new_password="new_password",
         confirm_new_password="new_password",
+    )
+
+
+@pytest.fixture
+def unit_test_user_2_in_db():
+    return dict(
+        id=2,
+        name="TestName2",
+        surname="TestSurname2",
+        username="test_user2",
+        password=get_password_hash("test_password2"),
+        email="test2@example.com",
+        role=UserRoleEnum.LIBRARIAN.value,
+        is_blocked=False,
     )

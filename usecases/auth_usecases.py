@@ -6,6 +6,7 @@ import redis.asyncio as aioredis
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from jwt import ExpiredSignatureError
+from pydantic import EmailStr
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
@@ -208,7 +209,7 @@ class AuthUseCase:
     async def update_user_password(self, new_credentials: UserResetPasswordSchema):
         try:
             payload = jwt.decode(new_credentials.reset_token, SECRET_KEY, algorithms=[ALGORITHM])
-            email: str = payload.get("sub")
+            email: EmailStr = payload.get("sub")
 
             if email is None:
                 raise TokenError(message="Invalid token")

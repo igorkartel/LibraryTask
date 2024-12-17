@@ -30,11 +30,11 @@ class UserUseCase:
 
             return get_user
 
-        except SQLAlchemyError as e:
-            logger.error(f"Failed to fetch user by id: {str(e)}")
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to fetch user by id: {str(exc)}")
             raise SQLAlchemyError
-        except Exception as e:
-            logger.error(str(e))
+        except Exception as exc:
+            logger.error(str(exc))
             raise
 
     async def get_user_by_username(self, username: str):
@@ -91,11 +91,11 @@ class UserUseCase:
                 current_user_id=current_user.id, update_data=update_data_dict
             )
 
-        except SQLAlchemyError as e:
-            logger.error(f"Failed to update user: {str(e)}")
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to update user: {str(exc)}")
             raise SQLAlchemyError
-        except Exception as e:
-            logger.error(str(e))
+        except Exception as exc:
+            logger.error(str(exc))
             raise
 
     async def update_user_by_admin(
@@ -111,11 +111,11 @@ class UserUseCase:
                 user_id=user_id, update_data=update_data_dict
             )
 
-        except SQLAlchemyError as e:
-            logger.error(f"Failed to update user: {str(e)}")
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to update user: {str(exc)}")
             raise SQLAlchemyError
-        except Exception as e:
-            logger.error(str(e))
+        except Exception as exc:
+            logger.error(str(exc))
             raise
 
     async def delete_user(self, user_id: int, current_user: UserReadSchema):
