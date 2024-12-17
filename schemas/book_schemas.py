@@ -7,7 +7,9 @@ from models.book import BookStatusEnum
 
 class BookBaseSchema(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
+    created_by: str = None
     updated_at: datetime = Field(default_factory=datetime.now)
+    updated_by: str = None
 
     model_config = {"from_attributes": True}
 

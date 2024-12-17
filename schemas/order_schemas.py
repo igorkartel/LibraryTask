@@ -19,6 +19,8 @@ class OrderCreateSchema(BaseModel):
     lost_books: int = 0
     lost_cost: float = 0
     total_cost: float = 0
+    created_by: str = None
+    closed_by: str = None
 
     model_config = {"from_attributes": True}
 

@@ -21,7 +21,9 @@ class Reader(BaseModel):
     email: Mapped[str] = mapped_column(unique=True, nullable=False)
     address: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    created_by: Mapped[Optional[str]] = mapped_column(default=None)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+    updated_by: Mapped[Optional[str]] = mapped_column(default=None)
 
     orders: Mapped[list["Order"]] = relationship("Order", back_populates="reader")
 
