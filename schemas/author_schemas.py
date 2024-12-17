@@ -1,9 +1,6 @@
 from datetime import datetime
-from typing import Annotated, List
 
 from pydantic import BaseModel, Field
-
-from schemas.book_schemas import BookReadSchema
 
 
 class AuthorBaseSchema(BaseModel):
@@ -22,10 +19,6 @@ class AuthorCreateSchema(AuthorBaseSchema):
 
 class AuthorReadSchema(AuthorCreateSchema):
     id: int
-
-
-class AuthorWithBooksReadSchema(AuthorReadSchema):
-    books: Annotated[List[BookReadSchema], Field(default_factory=list)]
 
 
 class AuthorUpdateSchema(BaseModel):

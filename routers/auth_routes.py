@@ -67,3 +67,13 @@ async def reset_password(
 ):
     """Resets user's password checking refresh password token. Accepts new password and new password confirmation"""
     return await usecase.update_user_password(new_credentials=new_credentials)
+
+
+# @router.post("/logout")
+# async def logout(
+#     refresh_token: str = Depends(oauth2_scheme),
+#     redis: aioredis.Redis = Depends(get_redis_connection),
+#     auth_usecase: AuthUseCase = Depends(get_auth_usecase),
+# ):
+#     """Logout of user by adding a refresh token into blacklist"""
+#     return await auth_usecase.logout(refresh_token=refresh_token, redis=redis)
