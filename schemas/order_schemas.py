@@ -8,14 +8,7 @@ from schemas.book_schemas import BookInstanceReadSchema
 from schemas.reader_schemas import ReaderReadSchema
 
 
-class OrderBaseSchema(BaseModel):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-
-class OrderCreateSchema(OrderBaseSchema):
+class OrderCreateSchema(BaseModel):
     reader_id: int
     order_date: date = Field(default_factory=date.today)
     status: OrderStatusEnum = OrderStatusEnum.ACTIVE
@@ -28,8 +21,10 @@ class OrderCreateSchema(OrderBaseSchema):
     lost_cost: float = 0
     total_cost: float = 0
 
+    model_config = {"from_attributes": True}
 
-class OrderReadSchema(BaseModel):
+
+class OrderWithoutReaderReadSchema(BaseModel):
     id: int
     order_date: date
     status: OrderStatusEnum
@@ -41,8 +36,11 @@ class OrderReadSchema(BaseModel):
     lost_books: int
     lost_cost: float
     total_cost: float
-    book_instances: List[BookInstanceReadSchema] = []
-    reader: Dict[ReaderReadSchema] = {}
+    book_instances: List[BookInstanceReadSchema]
+
+
+class OrderReadSchema(OrderWithoutReaderReadSchema):
+    reader: Dict[ReaderReadSchema]
 
 
 class OrderUpdateSchema(BaseModel):
