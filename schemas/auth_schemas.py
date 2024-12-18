@@ -29,3 +29,7 @@ class UserResetPasswordSchema(BaseModel):
         if new_password != confirm_new_password:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
         return confirm_new_password
+
+
+class LogoutSchema(BaseModel):
+    message: str

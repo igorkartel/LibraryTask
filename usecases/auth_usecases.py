@@ -33,6 +33,7 @@ from exception_handlers.user_exc_handlers import UserAlreadyExists, UserDoesNotE
 from models import User
 from repositories.user_repository import UserRepository
 from schemas.auth_schemas import (
+    LogoutSchema,
     Token,
     UserForgotPasswordSchema,
     UserResetPasswordSchema,
@@ -231,36 +232,22 @@ class AuthUseCase:
             logger.error(str(exc))
             raise
 
-    # async def logout(self, refresh_token: str, redis: aioredis.Redis):
-    #     try:
-    #         # Проверяем, что токен не пустой
-    #         if not refresh_token:
-    #             raise HTTPException(
-    #                 status_code=status.HTTP_400_BAD_REQUEST, detail="Refresh token is required"
-    #             )
-    #
-    #         # Декодируем токен для проверки его валидности
-    #         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-    #
-    #         # Получаем время истечения токена
-    #         exp = payload.get("exp")
-    #         if not exp:
-    #             raise HTTPException(
-    #                 status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
-    #             )
-    #
-    #         # Добавляем токен в черный список с истечением времени его жизни
-    #         expiration = exp - int(datetime.utcnow().timestamp())
-    #         await add_refresh_token_to_blacklist(redis=redis, token=refresh_token, expiration=expiration)
-    #
-    #         return {"message": "Logout successful"}
-    #
-    #     except ExpiredSignatureError:
-    #         raise HTTPException(
-    #             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token already expired"
-    #         )
-    #     except jwt.PyJWTError as exc:
-    #         logger.error(f"Invalid token: {exc}")
-    #         raise HTTPException(
-    #             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-    #         )
+    async def logout(self, refresh_token: str, redis: aioredis.Redis):
+        try:
+            payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+            exp = payload.get("exp")
+
+            if not exp:
+                raise TokenError(message="Invalid token")
+
+            expiration = exp - int(datetime.now().timestamp())
+            await add_refresh_token_to_blacklist(redis=redis, token=refresh_token, expiration=expiration)
+
+            return LogoutSchema(message="Logout successful")
+
+        except ExpiredSignatureError as exc:
+            logger.error(str(exc))
+            raise TokenError(message="Token expired")
+        except Exception as exc:
+            logger.error(str(exc))
+            raise

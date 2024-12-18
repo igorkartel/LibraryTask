@@ -227,3 +227,23 @@ async def test_update_user_password_db_error(new_credentials):
         await auth_use_case.update_user_password(new_credentials=creds)
 
     mock_user_repo.update_user_password.assert_awaited_once()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_logout(refresh_token):
+    with patch(
+        "usecases.auth_usecases.add_refresh_token_to_blacklist", new_callable=AsyncMock
+    ) as mock_add_refresh_token_to_blacklist:
+        mock_add_refresh_token_to_blacklist.return_value = True
+
+        mock_redis = AsyncMock()
+        mock_user_repo = AsyncMock()
+
+        auth_use_case = AuthUseCase(user_repository=mock_user_repo)
+
+        result = await auth_use_case.logout(refresh_token=refresh_token, redis=mock_redis)
+
+        assert result.message == "Logout successful"
+
+        mock_add_refresh_token_to_blacklist.assert_awaited_once()
