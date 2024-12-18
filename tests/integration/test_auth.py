@@ -96,3 +96,21 @@ async def test_reset_password(async_client: AsyncClient, test_user):
 
     assert new_pass_response.status_code == status.HTTP_200_OK
     assert "message" in new_pass_response.json()
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_logout(async_client: AsyncClient, test_user):
+    form_data = {"username": test_user["username"], "password": test_user["password"]}
+    login_response = await async_client.post("/auth/login", data=form_data)
+
+    refresh_token = login_response.json()["refresh_token"]
+    access_token = login_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    response = await async_client.post(
+        "/auth/logout", params={"refresh_token": refresh_token}, headers=headers
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert "message" in response.json()

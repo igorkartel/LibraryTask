@@ -18,7 +18,9 @@ class Author(BaseModel):
     nationality: Mapped[str] = mapped_column(nullable=False)
     photo_s3_url: Mapped[Optional[str]] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    created_by: Mapped[Optional[str]] = mapped_column(default=None)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+    updated_by: Mapped[Optional[str]] = mapped_column(default=None)
 
     books: Mapped[list["Book"]] = relationship(
         "Book",

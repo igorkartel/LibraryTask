@@ -1,6 +1,6 @@
 from datetime import date
 from enum import Enum
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import DECIMAL, Date, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -31,6 +31,8 @@ class Order(BaseModel):
     lost_books: Mapped[int] = mapped_column(nullable=False, default=0)
     lost_cost: Mapped[float] = mapped_column(DECIMAL(precision=10, scale=2), nullable=False, default=0)
     total_cost: Mapped[float] = mapped_column(DECIMAL(precision=10, scale=2), nullable=False)
+    created_by: Mapped[Optional[str]] = mapped_column(default=None)
+    closed_by: Mapped[Optional[str]] = mapped_column(default=None)
 
     book_instances: Mapped[List["BookInstance"]] = relationship(
         "BookInstance",

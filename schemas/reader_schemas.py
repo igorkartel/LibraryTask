@@ -1,14 +1,13 @@
 from datetime import date, datetime
-from typing import Annotated, List
 
 from pydantic import BaseModel, EmailStr, Field
-
-from schemas.order_schemas import OrderWithoutReaderReadSchema
 
 
 class ReaderBaseSchema(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
+    created_by: str = None
     updated_at: datetime = Field(default_factory=datetime.now)
+    updated_by: str = None
 
     model_config = {"from_attributes": True}
 
@@ -25,10 +24,6 @@ class ReaderCreateSchema(ReaderBaseSchema):
 
 class ReaderReadSchema(ReaderCreateSchema):
     id: int
-
-
-class ReaderWithOrderSchema(ReaderReadSchema):
-    orders: Annotated[List[OrderWithoutReaderReadSchema], Field(default_factory=list)]
 
 
 class ReaderUpdateSchema(BaseModel):
