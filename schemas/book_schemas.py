@@ -1,16 +1,15 @@
 from datetime import datetime
-from typing import Annotated, Dict, List
 
 from pydantic import BaseModel, Field
 
 from models.book import BookStatusEnum
-from schemas.author_schemas import AuthorReadSchema
-from schemas.genre_schemas import GenreReadSchema
 
 
 class BookBaseSchema(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
+    created_by: str = None
     updated_at: datetime = Field(default_factory=datetime.now)
+    updated_by: str = None
 
     model_config = {"from_attributes": True}
 
@@ -34,7 +33,6 @@ class BookInstanceCreateSchema(BookBaseSchema):
 
 class BookReadSchema(BookCreateSchema):
     id: int
-    authors: Annotated[List[AuthorReadSchema], Field(default_factory=list)]
 
 
 class BookInstanceReadSchema(BaseModel):
@@ -47,14 +45,8 @@ class BookInstanceReadSchema(BaseModel):
     status: BookStatusEnum
 
 
-class BookWithGenresInstancesReadSchema(BookCreateSchema):
-    id: int
-    genres: Annotated[List[GenreReadSchema], Field(default_factory=list)]
-    instances: Annotated[List[BookInstanceReadSchema], Field(default_factory=list)]
-
-
 class BookInstanceWithBookReadSchema(BookInstanceReadSchema):
-    book: Annotated[Dict[BookReadSchema], Field(default_factory=dict)]
+    book: BookReadSchema
 
 
 class BookUpdateSchema(BaseModel):

@@ -33,6 +33,7 @@ from exception_handlers.user_exc_handlers import UserAlreadyExists, UserDoesNotE
 from models import User
 from repositories.user_repository import UserRepository
 from schemas.auth_schemas import (
+    LogoutSchema,
     Token,
     UserForgotPasswordSchema,
     UserResetPasswordSchema,
@@ -224,6 +225,26 @@ class AuthUseCase:
         except SQLAlchemyError as exc:
             logger.error(f"Failed to update password: {str(exc)}")
             raise SQLAlchemyError
+        except ExpiredSignatureError as exc:
+            logger.error(str(exc))
+            raise TokenError(message="Token expired")
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
+    async def logout(self, refresh_token: str, redis: aioredis.Redis):
+        try:
+            payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+            exp = payload.get("exp")
+
+            if not exp:
+                raise TokenError(message="Invalid token")
+
+            expiration = exp - int(datetime.now().timestamp())
+            await add_refresh_token_to_blacklist(redis=redis, token=refresh_token, expiration=expiration)
+
+            return LogoutSchema(message="Logout successful")
+
         except ExpiredSignatureError as exc:
             logger.error(str(exc))
             raise TokenError(message="Token expired")

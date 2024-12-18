@@ -1,11 +1,10 @@
 from datetime import date
-from typing import Dict, List
+from typing import List
 
 from pydantic import BaseModel, Field
 
 from models.order import OrderStatusEnum
 from schemas.book_schemas import BookInstanceReadSchema
-from schemas.reader_schemas import ReaderReadSchema
 
 
 class OrderCreateSchema(BaseModel):
@@ -20,6 +19,8 @@ class OrderCreateSchema(BaseModel):
     lost_books: int = 0
     lost_cost: float = 0
     total_cost: float = 0
+    created_by: str = None
+    closed_by: str = None
 
     model_config = {"from_attributes": True}
 
@@ -37,10 +38,6 @@ class OrderWithoutReaderReadSchema(BaseModel):
     lost_cost: float
     total_cost: float
     book_instances: List[BookInstanceReadSchema]
-
-
-class OrderReadSchema(OrderWithoutReaderReadSchema):
-    reader: Dict[ReaderReadSchema]
 
 
 class OrderUpdateSchema(BaseModel):

@@ -1,13 +1,18 @@
 import redis.asyncio as aioredis
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import HTMLResponse
 
+from dependencies.auth_dependencies import get_current_active_user
 from dependencies.db_dependency import db_session
 from dependencies.redis_dependency import get_redis_connection
 from dependencies.usecase_dependencies import get_auth_usecase
-from schemas.auth_schemas import UserForgotPasswordSchema, UserResetPasswordSchema
+from schemas.auth_schemas import (
+    LogoutSchema,
+    UserForgotPasswordSchema,
+    UserResetPasswordSchema,
+)
 from schemas.user_schemas import UserCreateSchema, UserReadSchema
 from usecases.auth_usecases import AuthUseCase
 
@@ -67,3 +72,14 @@ async def reset_password(
 ):
     """Resets user's password checking refresh password token. Accepts new password and new password confirmation"""
     return await usecase.update_user_password(new_credentials=new_credentials)
+
+
+@router.post("/logout", response_model=LogoutSchema)
+async def logout(
+    refresh_token: str,
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    redis: aioredis.Redis = Depends(get_redis_connection),
+    auth_usecase: AuthUseCase = Depends(get_auth_usecase),
+):
+    """Logout of user by adding a refresh token into blacklist"""
+    return await auth_usecase.logout(refresh_token=refresh_token, redis=redis)

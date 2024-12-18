@@ -143,3 +143,8 @@ def test_user_3_for_update():
 @pytest.fixture
 def test_user_list_query_params():
     return dict(page=1, limit=30, sort_by="username", order_by="asc")
+
+
+@pytest.fixture
+def test_genre_list_query_params():
+    return dict(page=1, limit=30, sort_by="name", order_by="asc")
