@@ -1,11 +1,14 @@
 import aioboto3
 from aiobotocore.client import AioBaseClient
 from botocore.exceptions import BotoCoreError, ClientError
+from fastapi import Depends
 
 from configs.logger import logger
 from configs.minio_s3 import minio_config
 from configs.settings import settings
 from exception_handlers.minio_s3_exc_handlers import S3OperationException
+from repositories.minio_s3_repository import MinioS3Repository
+from usecases.minio_s3_usecases import MinioS3UseCase
 
 minio_aioboto3_session = aioboto3.session.Session()
 
@@ -26,3 +29,8 @@ async def get_minio_s3_client() -> AioBaseClient:
     except Exception as exc:
         logger.error(str(exc))
         raise
+
+
+async def get_minio_s3_usecase(s3_client: AioBaseClient = Depends(get_minio_s3_client)) -> MinioS3UseCase:
+    minio_s3_repository = MinioS3Repository(s3_client)
+    return MinioS3UseCase(minio_s3_repository)

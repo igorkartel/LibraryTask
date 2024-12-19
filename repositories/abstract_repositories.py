@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from aiobotocore.client import AioBaseClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -44,6 +45,35 @@ class AbstractUserRepository(ABC):
         pass
 
 
+class AbstractAuthorRepository(ABC):
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    @abstractmethod
+    async def create_new_author(self, new_author):
+        pass
+
+    @abstractmethod
+    async def get_author_by_id(self, author_id):
+        pass
+
+    @abstractmethod
+    async def get_author_by_surname(self, surname):
+        pass
+
+    @abstractmethod
+    async def get_all_authors(self, request_payload):
+        pass
+
+    @abstractmethod
+    async def update_author(self, author_id, update_data):
+        pass
+
+    @abstractmethod
+    async def delete_author(self, author_id):
+        pass
+
+
 class AbstractGenreRepository(ABC):
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -70,4 +100,25 @@ class AbstractGenreRepository(ABC):
 
     @abstractmethod
     async def delete_genre(self, genre_id):
+        pass
+
+
+class AbstractMinioS3Repository(ABC):
+    def __init__(self, s3_client: AioBaseClient):
+        self.s3_client = s3_client
+
+    @abstractmethod
+    async def is_existing_bucket(self, bucket_name):
+        pass
+
+    @abstractmethod
+    async def create_bucket(self, bucket_name):
+        pass
+
+    @abstractmethod
+    async def upload_file_and_get_preassigned_url(self, bucket_name, file):
+        pass
+
+    @abstractmethod
+    async def delete_file(self, bucket_name, file_name):
         pass

@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     DB_PORT: int
     DB_DATABASE: str
     DB_DRIVER: str
+    # pgadmin
+    PGADMIN_DEFAULT_EMAIL: str
+    PGADMIN_DEFAULT_PASSWORD: str
     # jwt
     SECRET_KEY: str
     ALGORITHM: str
@@ -24,6 +27,7 @@ class Settings(BaseSettings):
     MINIO_BUCKET_NAME_2: str
     MINIO_URL: str
     MINIO_REGION: str
+    MINIO_URL_TO_OPEN_FILE: str
     # rabbitmq
     RABBITMQ_HOST: str
     RABBITMQ_PORT: int
