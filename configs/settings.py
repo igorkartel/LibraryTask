@@ -21,8 +21,6 @@ class Settings(BaseSettings):
     # minio_s3
     MINIO_ROOT_USER: str
     MINIO_ROOT_PASSWORD: str
-    MINIO_ACCESS_KEY: str
-    MINIO_SECRET_KEY: str
     MINIO_BUCKET_NAME_1: str
     MINIO_BUCKET_NAME_2: str
     MINIO_URL: str

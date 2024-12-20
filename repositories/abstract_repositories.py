@@ -58,7 +58,7 @@ class AbstractAuthorRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_author_by_surname(self, surname):
+    async def get_author_by_surname_and_name(self, surname, name):
         pass
 
     @abstractmethod
@@ -108,7 +108,7 @@ class AbstractMinioS3Repository(ABC):
         self.s3_client = s3_client
 
     @abstractmethod
-    async def is_existing_bucket(self, bucket_name):
+    async def ensure_bucket_exists(self, bucket_name):
         pass
 
     @abstractmethod
@@ -116,7 +116,7 @@ class AbstractMinioS3Repository(ABC):
         pass
 
     @abstractmethod
-    async def upload_file_and_get_preassigned_url(self, bucket_name, file):
+    async def upload_file(self, bucket_name, file):
         pass
 
     @abstractmethod

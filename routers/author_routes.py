@@ -11,7 +11,7 @@ router = APIRouter(prefix="/author", tags=["author"])
 
 @router.post("/new", response_model=AuthorReadSchema)
 async def create_new_author(
-    new_author: AuthorCreateSchema,
+    new_author: AuthorCreateSchema = Depends(AuthorCreateSchema.as_form),
     current_user: UserReadSchema = Depends(get_current_active_user),
     usecase: AuthorUseCase = Depends(get_author_usecase),
     file: UploadFile = File(None),

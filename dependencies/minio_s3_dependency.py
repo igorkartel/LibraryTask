@@ -18,8 +18,8 @@ async def get_minio_s3_client() -> AioBaseClient:
         async with minio_aioboto3_session.client(
             service_name="s3",
             endpoint_url=settings.MINIO_URL,
-            aws_access_key_id=settings.MINIO_ACCESS_KEY,
-            aws_secret_access_key=settings.MINIO_SECRET_KEY,
+            aws_access_key_id=settings.MINIO_ROOT_USER,
+            aws_secret_access_key=settings.MINIO_ROOT_PASSWORD,
             config=minio_config,
         ) as minio_s3_client:
             yield minio_s3_client

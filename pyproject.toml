@@ -45,6 +45,7 @@ wrapt = "^1.16.0"
 aioboto3 = "^13.2.0"
 redis = "^5.2.0"
 aio-pika = "^9.4.3"
+pillow = "^11.0.0"
 
 [tool.black]
 line-length = 109
