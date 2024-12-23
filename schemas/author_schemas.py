@@ -3,7 +3,7 @@ from enum import Enum
 from typing import List
 
 from fastapi import Form, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class AuthorBaseSchema(BaseModel):
@@ -20,6 +20,13 @@ class AuthorCreateSchema(BaseModel):
     photo_s3_url: str | None = None
     created_by: str | None = None
     updated_by: str | None = None
+
+    @field_validator("name", "surname", "nationality", mode="before")
+    def empty_string_to_none(cls, value):
+        if value is None:
+            return None
+        value = value.strip()
+        return None if value == "" else value
 
     @classmethod
     def as_form(
@@ -56,12 +63,19 @@ class AuthorUpdateSchema(BaseModel):
     photo_s3_url: str | None = None
     updated_by: str | None = None
 
+    @field_validator("*", mode="before")
+    def empty_string_to_none(cls, value):
+        if value is None:
+            return None
+        value = value.strip()
+        return None if value == "" else value
+
     @classmethod
     def as_form(
         cls,
-        name: str | None = Form(),
-        surname: str | None = Form(),
-        nationality: str | None = Form(),
+        name: str | None = Form(default=None),
+        surname: str | None = Form(default=None),
+        nationality: str | None = Form(default=None),
         photo_s3_url: str | None = Form(default=None),
         updated_by: str | None = Form(default=None),
     ):

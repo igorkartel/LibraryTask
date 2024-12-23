@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from jwt import ExpiredSignatureError
 from pydantic import EmailStr
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
@@ -215,12 +216,17 @@ class AuthUseCase:
             if email is None:
                 raise TokenError(message="Invalid token")
 
-            new_password = new_credentials.new_password
-            new_hashed_password = get_password_hash(new_password)
+            user_to_update = await self.user_repository.get_user_by_email(email=email)
 
-            return await self.user_repository.update_user_password(
-                email=email, new_hashed_password=new_hashed_password
-            )
+            if not user_to_update:
+                raise UserDoesNotExist(message=f"User with email '{email}' does not exist")
+
+            new_hashed_password = get_password_hash(new_credentials.new_password)
+
+            user_to_update.password = new_hashed_password
+            user_to_update.updated_at = func.now()
+
+            return await self.user_repository.update_user_password(user_to_update=user_to_update)
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to update password: {str(exc)}")

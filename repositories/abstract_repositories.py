@@ -29,19 +29,19 @@ class AbstractUserRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_user(self, current_user, update_data):
+    async def update_user(self, user_to_update):
         pass
 
     @abstractmethod
-    async def update_user_by_admin(self, user_id, update_data):
+    async def update_user_by_admin(self, user_to_update):
         pass
 
     @abstractmethod
-    async def update_user_password(self, email, new_hashed_password):
+    async def update_user_password(self, user_to_update):
         pass
 
     @abstractmethod
-    async def delete_user(self, user_id):
+    async def delete_user(self, user_to_delete):
         pass
 
 
@@ -66,11 +66,11 @@ class AbstractAuthorRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_author(self, author_id, update_data):
+    async def update_author(self, author_to_update):
         pass
 
     @abstractmethod
-    async def delete_author(self, author_id):
+    async def delete_author(self, author_to_delete):
         pass
 
 
@@ -95,11 +95,11 @@ class AbstractGenreRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_genre(self, genre_id, update_data):
+    async def update_genre(self, genre_to_update):
         pass
 
     @abstractmethod
-    async def delete_genre(self, genre_id):
+    async def delete_genre(self, genre_to_delete):
         pass
 
 

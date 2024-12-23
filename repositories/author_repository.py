@@ -4,7 +4,12 @@ from sqlalchemy.orm import joinedload
 from exception_handlers.author_exc_handlers import AuthorDoesNotExist
 from models import Author
 from repositories.abstract_repositories import AbstractAuthorRepository
-from schemas.author_schemas import AuthorOrderBy, AuthorReadSchema, AuthorsListSchema
+from schemas.author_schemas import (
+    AuthorDeleteSchema,
+    AuthorOrderBy,
+    AuthorReadSchema,
+    AuthorsListSchema,
+)
 
 
 class AuthorRepository(AbstractAuthorRepository):
@@ -19,14 +24,22 @@ class AuthorRepository(AbstractAuthorRepository):
             select(Author).options(joinedload(Author.books)).where(Author.id == author_id)
         )
         author = result.unique().scalars().first()
+
         return author if author else None
 
     async def get_author_by_surname_and_name(self, surname: str, name: str | None) -> Author | None:
-        result = await self.db.execute(select(Author).where(Author.surname == surname, Author.name == name))
+        if not name:
+            result = await self.db.execute(select(Author).where(Author.surname == surname))
+        else:
+            result = await self.db.execute(
+                select(Author).where(Author.surname == surname, Author.name == name)
+            )
+
         author = result.unique().scalars().first()
+
         return author if author else None
 
-    async def get_all_authors(self, request_payload):
+    async def get_all_authors(self, request_payload) -> AuthorsListSchema:
         query = select(Author)
         sort_column = getattr(Author, request_payload.sort_by)
 
@@ -48,8 +61,16 @@ class AuthorRepository(AbstractAuthorRepository):
 
         return AuthorsListSchema(authors=authors)
 
-    async def update_author(self, author_id: int, update_data):
-        pass
+    async def update_author(self, author_to_update: Author) -> Author:
+        await self.db.commit()
+        await self.db.refresh(author_to_update)
 
-    async def delete_author(self, author_id: int):
-        pass
+        return author_to_update
+
+    async def delete_author(self, author_to_delete: Author) -> AuthorDeleteSchema:
+        await self.db.delete(author_to_delete)
+        await self.db.commit()
+
+        return AuthorDeleteSchema(
+            message=f"Author '{author_to_delete.name} {author_to_delete.surname}' deleted successfully"
+        )
