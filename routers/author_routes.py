@@ -2,7 +2,13 @@ from fastapi import APIRouter, Depends, File, UploadFile
 
 from dependencies.auth_dependencies import get_current_active_user
 from dependencies.usecase_dependencies import get_author_usecase
-from schemas.author_schemas import AuthorCreateSchema, AuthorReadSchema
+from schemas.author_schemas import (
+    AuthorCreateSchema,
+    AuthorListQueryParams,
+    AuthorReadSchema,
+    AuthorsListSchema,
+)
+from schemas.common_circular_schemas import AuthorWithBooksReadSchema
 from schemas.user_schemas import UserReadSchema
 from usecases.author_usecases import AuthorUseCase
 
@@ -18,3 +24,23 @@ async def create_new_author(
 ):
     """Allows the authenticated user with any role to create a new author"""
     return await usecase.create_new_author(new_author=new_author, file=file, username=current_user.username)
+
+
+@router.get("/{author_id}", response_model=AuthorWithBooksReadSchema)
+async def get_author_by_id(
+    author_id: int,
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    usecase: AuthorUseCase = Depends(get_author_usecase),
+):
+    """Allows the authenticated user with any role to get any author by id"""
+    return await usecase.get_author_by_id(author_id=author_id)
+
+
+@router.get("/authors/all", response_model=AuthorsListSchema)
+async def get_all_authors(
+    request_payload: AuthorListQueryParams = Depends(),
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    usecase: AuthorUseCase = Depends(get_author_usecase),
+):
+    """Allows the authenticated user with any role to get all the authors"""
+    return await usecase.get_all_authors(request_payload=request_payload)

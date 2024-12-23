@@ -3,10 +3,13 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from configs.logger import logger
 from configs.settings import settings
-from exception_handlers.author_exc_handlers import AuthorAlreadyExists
+from exception_handlers.author_exc_handlers import (
+    AuthorAlreadyExists,
+    AuthorDoesNotExist,
+)
 from models import Author
 from repositories.author_repository import AuthorRepository
-from schemas.author_schemas import AuthorCreateSchema
+from schemas.author_schemas import AuthorCreateSchema, AuthorListQueryParams
 from usecases.minio_s3_usecases import MinioS3UseCase
 
 
@@ -39,7 +42,7 @@ class AuthorUseCase:
                 if not bucket:
                     await self.minio_s3_usecase.create_bucket(bucket_name=authors_bucket)
 
-                file_url = await self.minio_s3_usecase.upload_file_and_get_preassigned_url(
+                file_url = await self.minio_s3_usecase.upload_file_and_get_presigned_url(
                     bucket_name=authors_bucket, file=file
                 )
                 new_author.photo_s3_url = file_url
@@ -58,6 +61,22 @@ class AuthorUseCase:
             logger.error(str(exc))
             raise
 
+    async def get_author_by_id(self, author_id: int):
+        try:
+            author = await self.author_repository.get_author_by_id(author_id=author_id)
+
+            if not author:
+                raise AuthorDoesNotExist(message=f"Author with id '{author_id}' does not exist")
+
+            return author
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to fetch author by id: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
     async def get_author_by_surname_and_name(self, surname: str, name: str | None):
         try:
             author = await self.author_repository.get_author_by_surname_and_name(surname=surname, name=name)
@@ -69,6 +88,17 @@ class AuthorUseCase:
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to fetch author by surname and name: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
+    async def get_all_authors(self, request_payload: AuthorListQueryParams):
+        try:
+            return await self.author_repository.get_all_authors(request_payload=request_payload)
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to fetch authors' list: {str(exc)}")
             raise SQLAlchemyError
         except Exception as exc:
             logger.error(str(exc))

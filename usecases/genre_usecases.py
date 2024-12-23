@@ -44,7 +44,7 @@ class GenreUseCase:
             return genre
 
         except SQLAlchemyError as exc:
-            logger.error(f"Failed to fetch genre by name: {str(exc)}")
+            logger.error(f"Failed to fetch genre by id: {str(exc)}")
             raise SQLAlchemyError
         except Exception as exc:
             logger.error(str(exc))

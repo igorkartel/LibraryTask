@@ -54,7 +54,7 @@ class MinioS3UseCase:
             logger.error(f"Failed to create a bucket: {str(exc)}")
             raise S3OperationException(f"Failed to create a bucket: {str(exc)}")
 
-    async def upload_file_and_get_preassigned_url(self, bucket_name: str, file: UploadFile) -> str:
+    async def upload_file_and_get_presigned_url(self, bucket_name: str, file: UploadFile) -> str:
         """
         Uploads a file to the specified bucket and generates a URL to access the file.
 
