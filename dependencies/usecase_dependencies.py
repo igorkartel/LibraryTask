@@ -2,10 +2,14 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dependencies.db_dependency import db_session
+from dependencies.minio_s3_dependency import get_minio_s3_usecase
+from repositories.author_repository import AuthorRepository
 from repositories.genre_repository import GenreRepository
 from repositories.user_repository import UserRepository
 from usecases.auth_usecases import AuthUseCase
+from usecases.author_usecases import AuthorUseCase
 from usecases.genre_usecases import GenreUseCase
+from usecases.minio_s3_usecases import MinioS3UseCase
 from usecases.user_usecases import UserUseCase
 
 
@@ -17,6 +21,13 @@ async def get_auth_usecase(db: AsyncSession = Depends(db_session)) -> AuthUseCas
 async def get_user_usecase(db: AsyncSession = Depends(db_session)) -> UserUseCase:
     user_repository = UserRepository(db)
     return UserUseCase(user_repository)
+
+
+async def get_author_usecase(
+    db: AsyncSession = Depends(db_session), minio_s3_usecase: MinioS3UseCase = Depends(get_minio_s3_usecase)
+) -> AuthorUseCase:
+    author_repository = AuthorRepository(db)
+    return AuthorUseCase(author_repository, minio_s3_usecase)
 
 
 async def get_genre_usecase(db: AsyncSession = Depends(db_session)) -> GenreUseCase:

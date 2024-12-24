@@ -199,10 +199,11 @@ async def test_get_reset_password_template(reset_token):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_update_user_password(new_credentials):
+async def test_update_user_password(new_credentials, unit_test_user_in_db):
     creds = UserResetPasswordSchema(**new_credentials)
 
     mock_user_repo = AsyncMock()
+    mock_user_repo.get_user_by_email.return_value = User(**unit_test_user_in_db)
     mock_user_repo.update_user_password.return_value = {"message": "Your password was successfully changed"}
 
     auth_use_case = AuthUseCase(user_repository=mock_user_repo)
@@ -210,15 +211,18 @@ async def test_update_user_password(new_credentials):
     result = await auth_use_case.update_user_password(new_credentials=creds)
 
     assert "message" in result
+
+    mock_user_repo.get_user_by_email.assert_awaited_once()
     mock_user_repo.update_user_password.assert_awaited_once()
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_update_user_password_db_error(new_credentials):
+async def test_update_user_password_db_error(new_credentials, unit_test_user_in_db):
     creds = UserResetPasswordSchema(**new_credentials)
 
     mock_user_repo = AsyncMock()
+    mock_user_repo.get_user_by_email.return_value = User(**unit_test_user_in_db)
     mock_user_repo.update_user_password.side_effect = SQLAlchemyError("DB error")
 
     auth_use_case = AuthUseCase(user_repository=mock_user_repo)
@@ -226,6 +230,7 @@ async def test_update_user_password_db_error(new_credentials):
     with pytest.raises(SQLAlchemyError):
         await auth_use_case.update_user_password(new_credentials=creds)
 
+    mock_user_repo.get_user_by_email.assert_awaited_once()
     mock_user_repo.update_user_password.assert_awaited_once()
 
 
