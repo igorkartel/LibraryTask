@@ -85,7 +85,7 @@ def mock_minio_s3_usecase(override_minio_s3_client):
     mock_minio_usecase.ensure_bucket_exists = AsyncMock(return_value=False)
     mock_minio_usecase.create_bucket = AsyncMock(return_value=True)
     mock_minio_usecase.upload_file_and_get_presigned_url = AsyncMock(
-        return_value={"file_url": f"{settings.MINIO_URL_TO_OPEN_FILE}/minio-s3-bucket/test.jpg"}
+        return_value=f"{settings.MINIO_URL_TO_OPEN_FILE}/minio-s3-bucket/test.jpg"
     )
     mock_minio_usecase.delete_file = AsyncMock(return_value=True)
     return mock_minio_usecase
