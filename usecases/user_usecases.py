@@ -1,4 +1,5 @@
 from pydantic import EmailStr
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 from configs.logger import logger
@@ -85,11 +86,19 @@ class UserUseCase:
 
     async def update_user(self, updated_data: UserUpdateSchema, current_user: UserReadSchema):
         try:
+            user_to_update = await self.user_repository.get_user_by_id(user_id=current_user.id)
+
+            if not user_to_update:
+                raise UserDoesNotExist(message=f"User with id '{current_user.id}' does not exist")
+
             update_data_dict = updated_data.model_dump(exclude_unset=True)
 
-            return await self.user_repository.update_user(
-                current_user_id=current_user.id, update_data=update_data_dict
-            )
+            for key, value in update_data_dict.items():
+                setattr(user_to_update, key, value)
+
+            user_to_update.updated_at = func.now()
+
+            return await self.user_repository.update_user(user_to_update=user_to_update)
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to update user: {str(exc)}")
@@ -105,11 +114,19 @@ class UserUseCase:
             if current_user.role != UserRoleEnum.ADMIN:
                 raise PermissionDeniedError(message="You have no permission to update any User's data")
 
+            user_to_update = await self.user_repository.get_user_by_id(user_id=user_id)
+
+            if not user_to_update:
+                raise UserDoesNotExist(message=f"User with id '{user_id}' does not exist")
+
             update_data_dict = updated_data.model_dump(exclude_unset=True)
 
-            return await self.user_repository.update_user_by_admin(
-                user_id=user_id, update_data=update_data_dict
-            )
+            for key, value in update_data_dict.items():
+                setattr(user_to_update, key, value)
+
+            user_to_update.updated_at = func.now()
+
+            return await self.user_repository.update_user_by_admin(user_to_update=user_to_update)
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to update user: {str(exc)}")
@@ -123,7 +140,12 @@ class UserUseCase:
             if current_user.role != UserRoleEnum.ADMIN:
                 raise PermissionDeniedError(message="You have no permission to update any User's data")
 
-            return await self.user_repository.delete_user(user_id=user_id)
+            user_to_delete = await self.user_repository.get_user_by_id(user_id=user_id)
+
+            if not user_to_delete:
+                raise UserDoesNotExist(message=f"User with id '{user_id}' does not exist")
+
+            return await self.user_repository.delete_user(user_to_delete=user_to_delete)
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to delete user: {str(exc)}")

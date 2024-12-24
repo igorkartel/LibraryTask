@@ -1,5 +1,5 @@
 from pydantic import EmailStr
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from exception_handlers.user_exc_handlers import UserDoesNotExist
 from models import User
@@ -57,63 +57,26 @@ class UserRepository(AbstractUserRepository):
 
         return UsersListSchema(users=users)
 
-    async def update_user(self, current_user_id: int, update_data: dict) -> User:
-        result = await self.db.execute(select(User).where(User.id == current_user_id))
-        user_to_update = result.scalars().first()
-
-        if not user_to_update:
-            raise UserDoesNotExist(message=f"User with id '{current_user_id}' does not exist")
-
-        for key, value in update_data.items():
-            setattr(user_to_update, key, value)
-
-        user_to_update.updated_at = func.now()
-
+    async def update_user(self, user_to_update: User) -> User:
         await self.db.commit()
         await self.db.refresh(user_to_update)
 
         return user_to_update
 
-    async def update_user_by_admin(self, user_id: int, update_data: dict) -> User:
-        result = await self.db.execute(select(User).where(User.id == user_id))
-        user_to_update = result.scalars().first()
-
-        if not user_to_update:
-            raise UserDoesNotExist(message=f"User with id '{user_id}' does not exist")
-
-        for key, value in update_data.items():
-            setattr(user_to_update, key, value)
-
-        user_to_update.updated_at = func.now()
-
+    async def update_user_by_admin(self, user_to_update: User) -> User:
         await self.db.commit()
         await self.db.refresh(user_to_update)
 
         return user_to_update
 
-    async def update_user_password(self, email: EmailStr, new_hashed_password: str):
-        result = await self.db.execute(select(User).where(User.email == email))
-        user_to_update = result.scalars().first()
-
-        if not user_to_update:
-            raise UserDoesNotExist(message=f"User with email '{email}' does not exist")
-
-        user_to_update.password = new_hashed_password
-        user_to_update.updated_at = func.now()
-
+    async def update_user_password(self, user_to_update: User):
         await self.db.commit()
         await self.db.refresh(user_to_update)
 
         return {"message": "Your password was successfully changed"}
 
-    async def delete_user(self, user_id: int) -> UserDeleteSchema:
-        result = await self.db.execute(select(User).where(User.id == user_id))
-        user_to_delete = result.scalars().first()
-
-        if not user_to_delete:
-            raise UserDoesNotExist(message=f"User with id '{user_id}' does not exist")
-
+    async def delete_user(self, user_to_delete: User) -> UserDeleteSchema:
         await self.db.delete(user_to_delete)
         await self.db.commit()
 
-        return UserDeleteSchema(message=f"User with id {user_id} deleted successfully")
+        return UserDeleteSchema(message=f"User {user_to_delete.username} deleted successfully")

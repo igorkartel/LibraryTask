@@ -44,7 +44,7 @@ class GenreUseCase:
             return genre
 
         except SQLAlchemyError as exc:
-            logger.error(f"Failed to fetch genre by name: {str(exc)}")
+            logger.error(f"Failed to fetch genre by id: {str(exc)}")
             raise SQLAlchemyError
         except Exception as exc:
             logger.error(str(exc))
@@ -82,7 +82,15 @@ class GenreUseCase:
             update_data_dict = updated_data.model_dump(exclude_unset=True)
             update_data_dict["name"] = updated_data.name.capitalize()
 
-            return await self.genre_repository.update_genre(genre_id=genre_id, update_data=update_data_dict)
+            genre_to_update = await self.genre_repository.get_genre_by_id(genre_id=genre_id)
+
+            if not genre_to_update:
+                raise GenreDoesNotExist(message=f"Genre with id '{genre_id}' does not exist")
+
+            for key, value in update_data_dict.items():
+                setattr(genre_to_update, key, value)
+
+            return await self.genre_repository.update_genre(genre_to_update=genre_to_update)
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to update genre: {str(exc)}")
@@ -93,7 +101,12 @@ class GenreUseCase:
 
     async def delete_genre(self, genre_id: int):
         try:
-            return await self.genre_repository.delete_genre(genre_id=genre_id)
+            genre_to_delete = await self.genre_repository.get_genre_by_id(genre_id=genre_id)
+
+            if not genre_to_delete:
+                raise GenreDoesNotExist(message=f"Genre with id '{genre_id}' does not exist")
+
+            return await self.genre_repository.delete_genre(genre_to_delete=genre_to_delete)
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to delete genre: {str(exc)}")

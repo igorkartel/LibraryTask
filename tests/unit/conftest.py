@@ -1,6 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 from fastapi.security import OAuth2PasswordRequestForm
 
+from configs.settings import settings
 from dependencies.auth_dependencies import get_password_hash
 from models.user_role_enum import UserRoleEnum
 
@@ -67,3 +70,42 @@ def unit_test_user_2_in_db():
         role=UserRoleEnum.LIBRARIAN.value,
         is_blocked=False,
     )
+
+
+@pytest.fixture
+def unit_test_author():
+    return dict(name="Стивен", surname="Кинг", nationality="США")
+
+
+@pytest.fixture
+def unit_test_author_in_db():
+    return dict(
+        id=1,
+        name="Стивен",
+        surname="Кинг",
+        nationality="США",
+        photo_s3_url=f"{settings.MINIO_URL_TO_OPEN_FILE}/minio-s3-bucket/test.jpg",
+        created_at="2024-12-23 13:50:17.494935",
+        updated_at="2024-12-23 14:00:50.788192",
+        created_by="librarian",
+        updated_by="admin",
+    )
+
+
+@pytest.fixture
+def unit_mock_file():
+    mock_file = MagicMock()
+    mock_file.filename = "test.jpg"
+    return mock_file
+
+
+@pytest.fixture
+def unit_mock_minio_usecase():
+    mock_minio_usecase = AsyncMock()
+    mock_minio_usecase.ensure_bucket_exists.return_value = False
+    mock_minio_usecase.create_bucket.return_value = True
+    mock_minio_usecase.upload_file_and_get_presigned_url.return_value = (
+        f"{settings.MINIO_URL_TO_OPEN_FILE}/minio-s3-bucket/test.jpg"
+    )
+    mock_minio_usecase.delete_file.return_value = None
+    return mock_minio_usecase

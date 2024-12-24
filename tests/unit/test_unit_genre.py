@@ -165,6 +165,7 @@ async def test_update_genre():
     genre_to_update = {"id": genre_id, "name": "Ужасы"}
 
     mock_genre_repo = AsyncMock()
+    mock_genre_repo.get_genre_by_id.return_value = Genre(id=genre_id, name="Фантастика")
     mock_genre_repo.update_genre.return_value = GenreReadSchema(**genre_to_update)
 
     genre_use_case = GenreUseCase(genre_repository=mock_genre_repo)
@@ -173,6 +174,7 @@ async def test_update_genre():
 
     assert result.name == updated_data.name
 
+    mock_genre_repo.get_genre_by_id.assert_awaited_once()
     mock_genre_repo.update_genre.assert_awaited_once()
 
 
@@ -183,6 +185,7 @@ async def test_update_genre_db_error():
     updated_data = GenreUpdateSchema(name="Ужасы")
 
     mock_genre_repo = AsyncMock()
+    mock_genre_repo.get_genre_by_id.return_value = Genre(id=genre_id, name="Фантастика")
     mock_genre_repo.update_genre.side_effect = SQLAlchemyError("DB Error")
 
     genre_use_case = GenreUseCase(genre_repository=mock_genre_repo)
@@ -190,6 +193,7 @@ async def test_update_genre_db_error():
     with pytest.raises(SQLAlchemyError):
         await genre_use_case.update_genre(genre_id=genre_id, updated_data=updated_data)
 
+    mock_genre_repo.get_genre_by_id.assert_awaited_once()
     mock_genre_repo.update_genre.assert_awaited_once()
 
 
@@ -200,6 +204,7 @@ async def test_delete_genre():
     genre_to_delete = Genre(id=genre_id, name="Ужасы")
 
     mock_genre_repo = AsyncMock()
+    mock_genre_repo.get_genre_by_id.return_value = genre_to_delete
     mock_genre_repo.delete_genre.return_value = GenreDeleteSchema(
         message=f"Genre '{genre_to_delete.name}' deleted successfully"
     )
@@ -210,6 +215,7 @@ async def test_delete_genre():
 
     assert result.message == f"Genre '{genre_to_delete.name}' deleted successfully"
 
+    mock_genre_repo.get_genre_by_id.assert_awaited_once()
     mock_genre_repo.delete_genre.assert_awaited_once()
 
 
@@ -217,8 +223,10 @@ async def test_delete_genre():
 @pytest.mark.asyncio
 async def test_delete_genre_db_error():
     genre_id = 1
+    genre_to_delete = Genre(id=genre_id, name="Ужасы")
 
     mock_genre_repo = AsyncMock()
+    mock_genre_repo.get_genre_by_id.return_value = genre_to_delete
     mock_genre_repo.delete_genre.side_effect = SQLAlchemyError("DB Error")
 
     genre_use_case = GenreUseCase(genre_repository=mock_genre_repo)
@@ -226,4 +234,5 @@ async def test_delete_genre_db_error():
     with pytest.raises(SQLAlchemyError):
         await genre_use_case.delete_genre(genre_id=genre_id)
 
+    mock_genre_repo.get_genre_by_id.assert_awaited_once()
     mock_genre_repo.delete_genre.assert_awaited_once()

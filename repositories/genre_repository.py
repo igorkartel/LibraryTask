@@ -31,7 +31,7 @@ class GenreRepository(AbstractGenreRepository):
         genre = result.unique().scalars().first()
         return genre if genre else None
 
-    async def get_all_genres(self, request_payload):
+    async def get_all_genres(self, request_payload) -> GenresListSchema:
         query = select(Genre)
         sort_column = getattr(Genre, request_payload.sort_by)
 
@@ -53,28 +53,13 @@ class GenreRepository(AbstractGenreRepository):
 
         return GenresListSchema(genres=genres)
 
-    async def update_genre(self, genre_id: int, update_data: dict):
-        result = await self.db.execute(select(Genre).where(Genre.id == genre_id))
-        genre_to_update = result.scalars().first()
-
-        if not genre_to_update:
-            raise GenreDoesNotExist(message=f"Genre with id '{genre_id}' does not exist")
-
-        for key, value in update_data.items():
-            setattr(genre_to_update, key, value)
-
+    async def update_genre(self, genre_to_update: Genre) -> Genre:
         await self.db.commit()
         await self.db.refresh(genre_to_update)
 
         return genre_to_update
 
-    async def delete_genre(self, genre_id: int):
-        result = await self.db.execute(select(Genre).where(Genre.id == genre_id))
-        genre_to_delete = result.scalars().first()
-
-        if not genre_to_delete:
-            raise GenreDoesNotExist(message=f"Genre with id '{genre_id}' does not exist")
-
+    async def delete_genre(self, genre_to_delete: Genre) -> GenreDeleteSchema:
         await self.db.delete(genre_to_delete)
         await self.db.commit()
 

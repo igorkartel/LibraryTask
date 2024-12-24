@@ -168,6 +168,7 @@ async def test_update_user(unit_test_user_in_db):
     user_to_update["updated_at"] = datetime.now()
 
     mock_user_repo = AsyncMock()
+    mock_user_repo.get_user_by_id.return_value = User(**unit_test_user_in_db)
     mock_user_repo.update_user.return_value = UserReadSchema(**user_to_update)
 
     user_use_case = UserUseCase(user_repository=mock_user_repo)
@@ -176,6 +177,7 @@ async def test_update_user(unit_test_user_in_db):
 
     assert result.email == updated_data.email
 
+    mock_user_repo.get_user_by_id.assert_awaited_once()
     mock_user_repo.update_user.assert_awaited_once()
 
 
@@ -191,6 +193,7 @@ async def test_update_user_db_error(unit_test_user_in_db):
     user_to_update["updated_at"] = datetime.now()
 
     mock_user_repo = AsyncMock()
+    mock_user_repo.get_user_by_id.return_value = User(**unit_test_user_in_db)
     mock_user_repo.update_user.side_effect = SQLAlchemyError("DB error")
 
     user_use_case = UserUseCase(user_repository=mock_user_repo)
@@ -198,6 +201,7 @@ async def test_update_user_db_error(unit_test_user_in_db):
     with pytest.raises(SQLAlchemyError):
         await user_use_case.update_user(updated_data=updated_data, current_user=current_user)
 
+    mock_user_repo.get_user_by_id.assert_awaited_once()
     mock_user_repo.update_user.assert_awaited_once()
 
 
@@ -214,6 +218,7 @@ async def test_update_user_by_admin(unit_test_user_2_in_db):
     user_to_update["updated_at"] = datetime.now()
 
     mock_user_repo = AsyncMock()
+    mock_user_repo.get_user_by_id.return_value = User(**unit_test_user_2_in_db)
     mock_user_repo.update_user_by_admin.return_value = UserReadSchema(**user_to_update)
 
     user_use_case = UserUseCase(user_repository=mock_user_repo)
@@ -225,6 +230,7 @@ async def test_update_user_by_admin(unit_test_user_2_in_db):
     assert result.email == updated_data.email
     assert result.is_blocked == updated_data.is_blocked
 
+    mock_user_repo.get_user_by_id.assert_awaited_once()
     mock_user_repo.update_user_by_admin.assert_awaited_once()
 
 
@@ -249,20 +255,22 @@ async def test_update_user_by_admin_no_permission(unit_test_user_in_db):
 @pytest.mark.asyncio
 async def test_delete_user(unit_test_user_2_in_db):
     user_id = unit_test_user_2_in_db["id"]
+    username = unit_test_user_2_in_db["username"]
     current_user = AsyncMock()
     current_user.role = "admin"
 
     mock_user_repo = AsyncMock()
     mock_user_repo.delete_user.return_value = UserDeleteSchema(
-        message=f"User with id {user_id} deleted successfully"
+        message=f"User '{username}' deleted successfully"
     )
 
     user_use_case = UserUseCase(user_repository=mock_user_repo)
 
     result = await user_use_case.delete_user(user_id=user_id, current_user=current_user)
 
-    assert result.message == f"User with id {user_id} deleted successfully"
+    assert result.message == f"User '{username}' deleted successfully"
 
+    mock_user_repo.get_user_by_id.assert_awaited_once()
     mock_user_repo.delete_user.assert_awaited_once()
 
 

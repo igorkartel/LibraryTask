@@ -14,24 +14,11 @@ class BucketS3DoesNotExist(Exception):
         super().__init__(self.detail)
 
 
-class UrlS3DoesNotExist(Exception):
-    def __init__(self):
-        self.detail = "No such url found. Check the correctness of bucket name and file name"
-        super().__init__(self.detail)
-
-
 def register_minio_exception_handlers(app: FastAPI):
     @app.exception_handler(S3OperationException)
     async def minio_s3_exception_handler(request: Request, exc: S3OperationException):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"detail": exc.detail},
-        )
-
-    @app.exception_handler(UrlS3DoesNotExist)
-    async def url_s3_does_not_exist_exception_handler(request: Request, exc: UrlS3DoesNotExist):
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
             content={"detail": exc.detail},
         )
 

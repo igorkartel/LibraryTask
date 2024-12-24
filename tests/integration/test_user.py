@@ -94,4 +94,4 @@ async def test_delete_user(async_client: AsyncClient, test_user, test_user_3):
     response = await async_client.delete(f"/user/{user_id}", headers=headers)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["message"] == f"User with id {user_id} deleted successfully"
+    assert response.json()["message"] == f"User {test_user_3["username"]} deleted successfully"
