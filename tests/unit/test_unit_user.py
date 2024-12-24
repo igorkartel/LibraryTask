@@ -249,19 +249,20 @@ async def test_update_user_by_admin_no_permission(unit_test_user_in_db):
 @pytest.mark.asyncio
 async def test_delete_user(unit_test_user_2_in_db):
     user_id = unit_test_user_2_in_db["id"]
+    username = unit_test_user_2_in_db["username"]
     current_user = AsyncMock()
     current_user.role = "admin"
 
     mock_user_repo = AsyncMock()
     mock_user_repo.delete_user.return_value = UserDeleteSchema(
-        message=f"User with id {user_id} deleted successfully"
+        message=f"User '{username}' deleted successfully"
     )
 
     user_use_case = UserUseCase(user_repository=mock_user_repo)
 
     result = await user_use_case.delete_user(user_id=user_id, current_user=current_user)
 
-    assert result.message == f"User with id {user_id} deleted successfully"
+    assert result.message == f"User '{username}' deleted successfully"
 
     mock_user_repo.delete_user.assert_awaited_once()
 

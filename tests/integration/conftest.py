@@ -1,6 +1,6 @@
 import asyncio
 from typing import AsyncGenerator
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 import pytest_asyncio
@@ -13,14 +13,15 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
+from configs.minio_s3 import minio_config
 from configs.settings import settings
-from dependencies.auth_dependencies import get_password_hash
 from dependencies.db_dependency import db_session
+from dependencies.minio_s3_dependency import get_minio_s3_client, minio_aioboto3_session
 from dependencies.redis_dependency import get_redis_connection
 from main import app
-from models import BaseModel, User
+from models import BaseModel
 from models.user_role_enum import UserRoleEnum
-from schemas.user_schemas import UserCreateSchema
+from usecases.minio_s3_usecases import MinioS3UseCase
 
 
 @pytest.fixture(scope="session")
@@ -67,15 +68,45 @@ async def mock_redis():
 
 
 @pytest_asyncio.fixture(scope="session")
-async def async_client(override_db_session, mock_redis) -> AsyncGenerator[AsyncClient, None]:
+async def override_minio_s3_client():
+    async with minio_aioboto3_session.client(
+        service_name="s3",
+        endpoint_url=settings.MINIO_URL,
+        aws_access_key_id=settings.MINIO_ROOT_USER,
+        aws_secret_access_key=settings.MINIO_ROOT_PASSWORD,
+        config=minio_config,
+    ) as minio_s3_client:
+        yield minio_s3_client
+
+
+@pytest.fixture
+def mock_minio_s3_usecase(override_minio_s3_client):
+    mock_minio_usecase = AsyncMock(spec=MinioS3UseCase)
+    mock_minio_usecase.ensure_bucket_exists = AsyncMock(return_value=False)
+    mock_minio_usecase.create_bucket = AsyncMock(return_value=True)
+    mock_minio_usecase.upload_file_and_get_presigned_url = AsyncMock(
+        return_value={"file_url": f"{settings.MINIO_URL_TO_OPEN_FILE}/minio-s3-bucket/test.jpg"}
+    )
+    mock_minio_usecase.delete_file = AsyncMock(return_value=True)
+    return mock_minio_usecase
+
+
+@pytest_asyncio.fixture(scope="session")
+async def async_client(
+    override_db_session, mock_redis, override_minio_s3_client
+) -> AsyncGenerator[AsyncClient, None]:
     async def _override_db_session():
         yield override_db_session
 
     async def _override_redis():
         yield mock_redis
 
+    async def _override_minio_s3_client():
+        yield override_minio_s3_client
+
     app.dependency_overrides[db_session] = _override_db_session
     app.dependency_overrides[get_redis_connection] = _override_redis
+    app.dependency_overrides[get_minio_s3_client] = _override_minio_s3_client
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://localhost:8004") as ac:
         yield ac
@@ -148,3 +179,20 @@ def test_user_list_query_params():
 @pytest.fixture
 def test_genre_list_query_params():
     return dict(page=1, limit=30, sort_by="name", order_by="asc")
+
+
+@pytest.fixture
+def test_author_list_query_params():
+    return dict(page=1, limit=30, sort_by="surname", order_by="asc")
+
+
+@pytest.fixture
+def mock_file():
+    mock_file = MagicMock()
+    mock_file.filename = "test.jpg"
+    return mock_file
+
+
+@pytest.fixture
+def test_author():
+    return dict(name="Стивен", surname="Кинг", nationality="США")
