@@ -23,9 +23,7 @@ class Author(BaseModel):
     updated_by: Mapped[Optional[str]] = mapped_column(default=None)
 
     books: Mapped[list["Book"]] = relationship(
-        "Book",
-        secondary=author_book_association,
-        back_populates="authors",
+        "Book", secondary=author_book_association, back_populates="authors", lazy="joined"
     )
 
     def __str__(self):

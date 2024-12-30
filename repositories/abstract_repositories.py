@@ -103,6 +103,43 @@ class AbstractGenreRepository(ABC):
         pass
 
 
+class AbstractBookRepository(ABC):
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    @abstractmethod
+    async def create_new_book(self, new_book):
+        pass
+
+    @abstractmethod
+    async def create_new_book_with_author_and_genre(self, new_book):
+        pass
+
+    @abstractmethod
+    async def get_book_by_id(self, book_id):
+        pass
+
+    @abstractmethod
+    async def get_book_by_title(self, title):
+        pass
+
+    @abstractmethod
+    async def get_book_by_title_and_author(self, title, author):
+        pass
+
+    @abstractmethod
+    async def get_all_books(self, request_payload):
+        pass
+
+    @abstractmethod
+    async def update_book(self, book_to_update):
+        pass
+
+    @abstractmethod
+    async def delete_book(self, book_to_delete):
+        pass
+
+
 class AbstractMinioS3Repository(ABC):
     def __init__(self, s3_client: AioBaseClient):
         self.s3_client = s3_client

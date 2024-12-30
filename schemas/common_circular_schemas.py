@@ -2,6 +2,7 @@ from typing import List
 
 from schemas.author_schemas import AuthorReadSchema
 from schemas.book_schemas import (
+    BookBaseSchema,
     BookCreateSchema,
     BookInstanceReadSchema,
     BookReadSchema,
@@ -11,14 +12,16 @@ from schemas.order_schemas import OrderWithoutReaderReadSchema
 from schemas.reader_schemas import ReaderReadSchema
 
 
-class BookWithAuthorReadSchema(BookCreateSchema):
+class BookWithAuthorsReadSchema(BookCreateSchema, BookBaseSchema):
     id: int
     authors: List[AuthorReadSchema] = []
 
 
-class BookWithGenresInstancesReadSchema(BookCreateSchema):
-    id: int
+class BookWithAuthorsGenresReadSchema(BookWithAuthorsReadSchema):
     genres: List[GenreReadSchema] = []
+
+
+class BookWithInstancesReadSchema(BookWithAuthorsGenresReadSchema):
     instances: List[BookInstanceReadSchema] = []
 
 
@@ -27,7 +30,7 @@ class AuthorWithBooksReadSchema(AuthorReadSchema):
 
 
 class GenreWithBooksReadSchema(GenreReadSchema):
-    books: List[BookWithAuthorReadSchema] = []
+    books: List[BookWithAuthorsReadSchema] = []
 
 
 class OrderReadSchema(OrderWithoutReaderReadSchema):

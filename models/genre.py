@@ -13,9 +13,7 @@ class Genre(BaseModel):
 
     name: Mapped[str] = mapped_column(nullable=False)
     books: Mapped[list["Book"]] = relationship(
-        "Book",
-        secondary=genre_book_association,
-        back_populates="genres",
+        "Book", secondary=genre_book_association, back_populates="genres", lazy="joined"
     )
 
     def __str__(self):

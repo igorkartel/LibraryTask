@@ -26,9 +26,6 @@ async def get_minio_s3_client() -> AioBaseClient:
     except (ClientError, BotoCoreError) as exc:
         logger.error(f"Failed to get Minio S3 client: {str(exc)}")
         raise S3OperationException(message=f"Failed to get Minio S3 client: {str(exc)}")
-    except Exception as exc:
-        logger.error(str(exc))
-        raise
 
 
 async def get_minio_s3_usecase(s3_client: AioBaseClient = Depends(get_minio_s3_client)) -> MinioS3UseCase:
