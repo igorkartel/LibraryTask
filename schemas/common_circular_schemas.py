@@ -1,5 +1,7 @@
 from typing import List
 
+from pydantic import BaseModel
+
 from schemas.author_schemas import AuthorReadSchema
 from schemas.book_schemas import (
     BookBaseSchema,
@@ -15,6 +17,10 @@ from schemas.reader_schemas import ReaderReadSchema
 class BookWithAuthorsReadSchema(BookCreateSchema, BookBaseSchema):
     id: int
     authors: List[AuthorReadSchema] = []
+
+
+class BookListSchema(BaseModel):
+    books: List[BookWithAuthorsReadSchema]
 
 
 class BookWithAuthorsGenresReadSchema(BookWithAuthorsReadSchema):

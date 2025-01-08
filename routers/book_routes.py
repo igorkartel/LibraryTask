@@ -3,7 +3,10 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from dependencies.auth_dependencies import get_current_active_user
 from dependencies.usecase_dependencies import get_book_usecase
 from schemas.book_schemas import BookWithAuthorsGenresCreateSchema
-from schemas.common_circular_schemas import BookWithAuthorsGenresReadSchema
+from schemas.common_circular_schemas import (
+    BookListSchema,
+    BookWithAuthorsGenresReadSchema,
+)
 from schemas.user_schemas import UserReadSchema
 from usecases.book_usecases import BookUseCase
 
@@ -24,3 +27,23 @@ async def create_new_book_with_author_and_genre(
     return await usecase.create_new_book_with_author_and_genre(
         new_book=new_book, file=file, username=current_user.username
     )
+
+
+@router.get("/{book_id}", response_model=BookWithAuthorsGenresReadSchema)
+async def get_book_by_id(
+    book_id: int,
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    usecase: BookUseCase = Depends(get_book_usecase),
+):
+    """Allows the authenticated user with any role to get any book by id"""
+    return await usecase.get_book_by_id(book_id=book_id)
+
+
+@router.get("/", response_model=BookListSchema)
+async def get_books_by_title(
+    book_title: str,
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    usecase: BookUseCase = Depends(get_book_usecase),
+):
+    """Allows the authenticated user with any role to get books by title"""
+    return await usecase.get_books_by_title(book_title=book_title)

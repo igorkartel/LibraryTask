@@ -120,7 +120,7 @@ class AbstractBookRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_book_by_title(self, title):
+    async def get_books_by_title(self, book_title):
         pass
 
     @abstractmethod

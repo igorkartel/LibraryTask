@@ -2,7 +2,7 @@ from fastapi import UploadFile
 from sqlalchemy.exc import SQLAlchemyError
 
 from configs.logger import logger
-from exception_handlers.book_exc_handlers import BookAlreadyExists
+from exception_handlers.book_exc_handlers import BookAlreadyExists, BookDoesNotExist
 from models import Book
 from repositories.book_repository import BookRepository
 from schemas.author_schemas import AuthorCreateSchema
@@ -73,6 +73,35 @@ class BookUseCase:
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to create a new book: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
+    async def get_book_by_id(self, book_id: int):
+        try:
+            book = await self.book_repository.get_book_by_id(book_id=book_id)
+
+            if not book:
+                raise BookDoesNotExist(message=f"Book with id '{book_id}' does not exist")
+
+            return book
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to fetch book by id: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
+    async def get_books_by_title(self, book_title: str):
+        try:
+            books = await self.book_repository.get_books_by_title(book_title=book_title)
+
+            return books
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to fetch book by title: {str(exc)}")
             raise SQLAlchemyError
         except Exception as exc:
             logger.error(str(exc))
