@@ -1,4 +1,5 @@
 from fastapi import UploadFile
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 from configs.logger import logger
@@ -6,7 +7,11 @@ from exception_handlers.book_exc_handlers import BookAlreadyExists, BookDoesNotE
 from models import Book
 from repositories.book_repository import BookRepository
 from schemas.author_schemas import AuthorCreateSchema
-from schemas.book_schemas import BookListQueryParams, BookWithAuthorsGenresCreateSchema
+from schemas.book_schemas import (
+    BookListQueryParams,
+    BookUpdateSchema,
+    BookWithAuthorsGenresCreateSchema,
+)
 from schemas.genre_schemas import GenreCreateSchema
 from usecases.author_usecases import AuthorUseCase
 from usecases.genre_usecases import GenreUseCase
@@ -129,6 +134,53 @@ class BookUseCase:
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to fetch books' list: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
+    async def update_book(self, book_id: int, updated_data: BookUpdateSchema, username: str):
+        try:
+            book_to_update = await self.book_repository.get_book_by_id(book_id=book_id)
+
+            if not book_to_update:
+                raise BookDoesNotExist(message=f"Book with id '{book_id}' does not exist")
+
+            update_data_dict = updated_data.model_dump(exclude_unset=True)
+
+            if updated_data.title_rus:
+                update_data_dict["title_rus"] = updated_data.title_rus.capitalize()
+
+            if updated_data.title_origin:
+                update_data_dict["title_origin"] = updated_data.title_origin.title()
+
+            update_data_dict["updated_by"] = username
+
+            for key, value in update_data_dict.items():
+                setattr(book_to_update, key, value)
+
+            book_to_update.updated_at = func.now()
+
+            return await self.book_repository.update_book(book_to_update=book_to_update)
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to update book: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
+    async def delete_book(self, book_id: int):
+        try:
+            book_to_delete = await self.book_repository.get_book_by_id(book_id=book_id)
+
+            if not book_to_delete:
+                raise BookDoesNotExist(message=f"Book with id '{book_id}' does not exist")
+
+            return await self.book_repository.delete_book(book_to_delete=book_to_delete)
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to delete book: {str(exc)}")
             raise SQLAlchemyError
         except Exception as exc:
             logger.error(str(exc))

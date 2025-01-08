@@ -2,7 +2,13 @@ from fastapi import APIRouter, Depends, File, UploadFile
 
 from dependencies.auth_dependencies import get_current_active_user
 from dependencies.usecase_dependencies import get_book_usecase
-from schemas.book_schemas import BookListQueryParams, BookWithAuthorsGenresCreateSchema
+from schemas.book_schemas import (
+    BookDeleteSchema,
+    BookListQueryParams,
+    BookReadSchema,
+    BookUpdateSchema,
+    BookWithAuthorsGenresCreateSchema,
+)
 from schemas.common_circular_schemas import (
     BookListSchema,
     BookWithAuthorsGenresReadSchema,
@@ -57,3 +63,26 @@ async def get_all_books(
 ):
     """Allows the authenticated user with any role to get all the books"""
     return await usecase.get_all_books(request_payload=request_payload)
+
+
+@router.patch("/{book_id}", response_model=BookReadSchema)
+async def update_book(
+    book_id: int,
+    updated_data: BookUpdateSchema,
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    usecase: BookUseCase = Depends(get_book_usecase),
+):
+    """Allows the authenticated user with any role to update any book in the system"""
+    return await usecase.update_book(
+        book_id=book_id, updated_data=updated_data, username=current_user.username
+    )
+
+
+@router.delete("/{book_id}", response_model=BookDeleteSchema)
+async def delete_book(
+    book_id: int,
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    usecase: BookUseCase = Depends(get_book_usecase),
+):
+    """Allows the authenticated user with any role to delete any book in the system"""
+    return await usecase.delete_book(book_id=book_id)

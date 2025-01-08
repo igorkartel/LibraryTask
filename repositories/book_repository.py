@@ -4,7 +4,7 @@ from sqlalchemy.orm import joinedload
 from exception_handlers.book_exc_handlers import BookDoesNotExist
 from models import Author, Book
 from repositories.abstract_repositories import AbstractBookRepository
-from schemas.book_schemas import BookListQueryParams, BookOrderBy
+from schemas.book_schemas import BookDeleteSchema, BookListQueryParams, BookOrderBy
 from schemas.common_circular_schemas import BookListSchema, BookWithAuthorsReadSchema
 
 
@@ -69,8 +69,14 @@ class BookRepository(AbstractBookRepository):
 
         return BookListSchema(books=books)
 
-    async def update_book(self, book_to_update):
-        pass
+    async def update_book(self, book_to_update: Book) -> Book:
+        await self.db.commit()
+        await self.db.refresh(book_to_update)
 
-    async def delete_book(self, book_to_delete):
-        pass
+        return book_to_update
+
+    async def delete_book(self, book_to_delete: Book) -> BookDeleteSchema:
+        await self.db.delete(book_to_delete)
+        await self.db.commit()
+
+        return BookDeleteSchema(message=f"Book '{book_to_delete.title_rus}' deleted successfully")
