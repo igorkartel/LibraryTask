@@ -4,6 +4,7 @@ from sqlalchemy.orm import joinedload
 from exception_handlers.book_exc_handlers import BookDoesNotExist
 from models import Author, Book
 from repositories.abstract_repositories import AbstractBookRepository
+from schemas.book_schemas import BookListQueryParams, BookOrderBy
 from schemas.common_circular_schemas import BookListSchema, BookWithAuthorsReadSchema
 
 
@@ -46,8 +47,27 @@ class BookRepository(AbstractBookRepository):
 
         return book if book else None
 
-    async def get_all_books(self, request_payload):
-        pass
+    async def get_all_books(self, request_payload: BookListQueryParams) -> BookListSchema:
+        query = select(Book).options(joinedload(Book.authors))
+        sort_column = getattr(Book, request_payload.sort_by)
+
+        if request_payload.order_by == BookOrderBy.desc:
+            sort_column = sort_column.desc()
+
+        query = query.order_by(sort_column)
+
+        offset = (request_payload.page - 1) * request_payload.limit
+        query = query.offset(offset).limit(request_payload.limit)
+
+        result = await self.db.execute(query)
+        books = result.unique().scalars().all()
+
+        if not books:
+            raise BookDoesNotExist(message="No books found")
+
+        books = [BookWithAuthorsReadSchema.model_validate(book) for book in books]
+
+        return BookListSchema(books=books)
 
     async def update_book(self, book_to_update):
         pass

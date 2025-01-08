@@ -6,7 +6,7 @@ from exception_handlers.book_exc_handlers import BookAlreadyExists, BookDoesNotE
 from models import Book
 from repositories.book_repository import BookRepository
 from schemas.author_schemas import AuthorCreateSchema
-from schemas.book_schemas import BookWithAuthorsGenresCreateSchema
+from schemas.book_schemas import BookListQueryParams, BookWithAuthorsGenresCreateSchema
 from schemas.genre_schemas import GenreCreateSchema
 from usecases.author_usecases import AuthorUseCase
 from usecases.genre_usecases import GenreUseCase
@@ -118,6 +118,17 @@ class BookUseCase:
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to fetch book by title and author: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
+    async def get_all_books(self, request_payload: BookListQueryParams):
+        try:
+            return await self.book_repository.get_all_books(request_payload=request_payload)
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to fetch books' list: {str(exc)}")
             raise SQLAlchemyError
         except Exception as exc:
             logger.error(str(exc))

@@ -1,6 +1,7 @@
 from datetime import datetime
+from enum import Enum
 
-from fastapi import Form
+from fastapi import Form, Query
 from pydantic import BaseModel, field_validator
 
 from models.book import BookStatusEnum
@@ -170,3 +171,20 @@ class BookDeleteSchema(BaseModel):
 
 class BookInstanceDeleteSchema(BookDeleteSchema):
     pass
+
+
+class BookSortBy(str, Enum):
+    id = "id"
+    title_rus = "title_rus"
+
+
+class BookOrderBy(str, Enum):
+    asc = "asc"
+    desc = "desc"
+
+
+class BookListQueryParams(BaseModel):
+    page: int = Query(1, gt=0)
+    limit: int = 30
+    sort_by: BookSortBy = BookSortBy.title_rus
+    order_by: BookOrderBy = BookOrderBy.asc

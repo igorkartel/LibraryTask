@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, File, UploadFile
 
 from dependencies.auth_dependencies import get_current_active_user
 from dependencies.usecase_dependencies import get_book_usecase
-from schemas.book_schemas import BookWithAuthorsGenresCreateSchema
+from schemas.book_schemas import BookListQueryParams, BookWithAuthorsGenresCreateSchema
 from schemas.common_circular_schemas import (
     BookListSchema,
     BookWithAuthorsGenresReadSchema,
@@ -47,3 +47,13 @@ async def get_books_by_title(
 ):
     """Allows the authenticated user with any role to get books by title"""
     return await usecase.get_books_by_title(book_title=book_title)
+
+
+@router.get("/books/all", response_model=BookListSchema)
+async def get_all_books(
+    request_payload: BookListQueryParams = Depends(),
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    usecase: BookUseCase = Depends(get_book_usecase),
+):
+    """Allows the authenticated user with any role to get all the books"""
+    return await usecase.get_all_books(request_payload=request_payload)
