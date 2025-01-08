@@ -112,10 +112,6 @@ class AbstractBookRepository(ABC):
         pass
 
     @abstractmethod
-    async def create_new_book_with_author_and_genre(self, new_book):
-        pass
-
-    @abstractmethod
     async def get_book_by_id(self, book_id):
         pass
 

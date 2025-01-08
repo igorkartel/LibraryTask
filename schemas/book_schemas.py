@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import Enum
+from typing import List
 
 from fastapi import Form, Query
 from pydantic import BaseModel, field_validator
@@ -70,6 +71,16 @@ class BookWithAuthorsGenresCreateSchema(BookCreateSchema):
             authors_nationality=authors_nationality,
             genre_name=genre_name,
         )
+
+
+class MapBookToExistingAuthors(BaseModel):
+    book_id: int
+    author_ids: List[int]
+
+
+class MapBookToExistingGenres(BaseModel):
+    book_id: int
+    genre_ids: List[int]
 
 
 class BookInstanceCreateSchema(BaseModel):

@@ -9,13 +9,11 @@ from schemas.common_circular_schemas import BookListSchema, BookWithAuthorsReadS
 
 
 class BookRepository(AbstractBookRepository):
-    async def create_new_book(self, new_book):
-        pass
-
-    async def create_new_book_with_author_and_genre(self, new_book: Book) -> Book:
+    async def create_new_book(self, new_book: Book) -> Book:
         self.db.add(new_book)
         await self.db.commit()
         await self.db.refresh(new_book)
+
         return new_book
 
     async def get_book_by_id(self, book_id: int) -> Book | None:

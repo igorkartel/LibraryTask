@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import UploadFile
 from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
@@ -8,6 +10,7 @@ from models import Book
 from repositories.book_repository import BookRepository
 from schemas.author_schemas import AuthorCreateSchema
 from schemas.book_schemas import (
+    BookCreateSchema,
     BookListQueryParams,
     BookUpdateSchema,
     BookWithAuthorsGenresCreateSchema,
@@ -24,6 +27,66 @@ class BookUseCase:
         self.book_repository = book_repository
         self.author_usecase = author_usecase
         self.genre_usecase = genre_usecase
+
+    async def create_new_book(self, new_book: BookCreateSchema, username: str):
+        try:
+            new_book_title_rus = new_book.title_rus.capitalize()
+            new_book.title_rus = new_book_title_rus
+
+            if new_book.title_origin:
+                new_book_title_origin = new_book.title_origin.title()
+                new_book.title_origin = new_book_title_origin
+
+            new_book.created_by = username
+
+            new_book = Book(**new_book.model_dump())
+
+            return await self.book_repository.create_new_book(new_book=new_book)
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to create a new book: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
+    async def map_book_to_existing_authors(self, book_id: int, author_ids: List[int], username: str):
+        try:
+            book = await self.book_repository.get_book_by_id(book_id=book_id)
+
+            for author_id in author_ids:
+                author = await self.author_usecase.get_author_by_id(author_id=author_id)
+                book.authors.append(author)
+
+            book.updated_by = username
+
+            return await self.book_repository.update_book(book_to_update=book)
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to map a book with authors: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
+
+    async def map_book_to_existing_genres(self, book_id: int, genre_ids: List[int], username: str):
+        try:
+            book = await self.book_repository.get_book_by_id(book_id=book_id)
+
+            for genre_id in genre_ids:
+                genre = await self.genre_usecase.get_genre_by_id(genre_id=genre_id)
+                book.genres.append(genre)
+
+            book.updated_by = username
+
+            return await self.book_repository.update_book(book_to_update=book)
+
+        except SQLAlchemyError as exc:
+            logger.error(f"Failed to map a book with genres: {str(exc)}")
+            raise SQLAlchemyError
+        except Exception as exc:
+            logger.error(str(exc))
+            raise
 
     async def create_new_book_with_author_and_genre(
         self,
@@ -64,8 +127,8 @@ class BookUseCase:
                 )
 
             new_book = Book(
-                title_rus=new_book.title_rus,
-                title_origin=new_book.title_origin,
+                title_rus=new_book.title_rus.capitalize(),
+                title_origin=new_book.title_origin.title(),
                 quantity=new_book.quantity,
                 available_for_loan=new_book.available_for_loan,
                 created_by=username,
@@ -74,7 +137,7 @@ class BookUseCase:
             new_book.authors.append(author)
             new_book.genres.append(genre)
 
-            return await self.book_repository.create_new_book_with_author_and_genre(new_book=new_book)
+            return await self.book_repository.create_new_book(new_book=new_book)
 
         except SQLAlchemyError as exc:
             logger.error(f"Failed to create a new book: {str(exc)}")
