@@ -44,7 +44,7 @@ class GenreRepository(AbstractGenreRepository):
         query = query.offset(offset).limit(request_payload.limit)
 
         result = await self.db.execute(query)
-        genres = result.scalars().all()
+        genres = result.unique().scalars().all()
 
         if not genres:
             raise GenreDoesNotExist(message="No genres found")

@@ -187,6 +187,11 @@ def test_author_list_query_params():
 
 
 @pytest.fixture
+def test_book_list_query_params():
+    return dict(page=1, limit=30, sort_by="title_rus", order_by="asc")
+
+
+@pytest.fixture
 def mock_file():
     mock_file = MagicMock()
     mock_file.filename = "test.jpg"
@@ -195,4 +200,34 @@ def mock_file():
 
 @pytest.fixture
 def test_author():
-    return dict(name="Стивен", surname="Кинг", nationality="США")
+    return dict(id=1, name="Стивен", surname="Кинг", nationality="США")
+
+
+@pytest.fixture
+def test_book():
+    return dict(
+        id=1,
+        title_rus="Книга",
+        title_origin="Book",
+        quantity=0,
+        available_for_loan=0,
+        created_by=None,
+        updated_by=None,
+    )
+
+
+@pytest.fixture
+def test_book_with_author_and_genre():
+    return dict(
+        id=2,
+        title_rus="Война и мир",
+        title_origin="Война и мир",
+        quantity=0,
+        available_for_loan=0,
+        created_by=None,
+        updated_by=None,
+        authors_name="Лев",
+        authors_surname="Толстой",
+        authors_nationality="Россия",
+        genre_name="Роман",
+    )

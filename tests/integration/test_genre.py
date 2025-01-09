@@ -51,7 +51,7 @@ async def test_get_all_genres(async_client: AsyncClient, test_user, test_genre_l
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.json()["genres"]) == 1
+    assert len(response.json()["genres"]) == 3
 
 
 @pytest.mark.integration

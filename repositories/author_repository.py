@@ -53,7 +53,7 @@ class AuthorRepository(AbstractAuthorRepository):
         query = query.offset(offset).limit(request_payload.limit)
 
         result = await self.db.execute(query)
-        authors = result.scalars().all()
+        authors = result.unique().scalars().all()
 
         if not authors:
             raise AuthorDoesNotExist(message="No authors found")
