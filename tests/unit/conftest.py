@@ -109,3 +109,38 @@ def unit_mock_minio_usecase():
     )
     mock_minio_usecase.delete_file.return_value = None
     return mock_minio_usecase
+
+
+@pytest.fixture
+def unit_test_book():
+    return dict(
+        title_rus="Книга",
+        title_origin="Book",
+    )
+
+
+@pytest.fixture
+def unit_test_book_in_db():
+    return dict(
+        id=1,
+        title_rus="Книга",
+        title_origin="Book",
+        quantity=0,
+        available_for_loan=0,
+        created_at="2025-01-09 13:50:17.494935",
+        updated_at="2025-01-09 14:00:50.788192",
+        created_by="librarian",
+        updated_by="admin",
+    )
+
+
+@pytest.fixture
+def unit_test_book_with_author_and_genre():
+    return dict(
+        title_rus="Книга",
+        title_origin="Book",
+        authors_name="Стивен",
+        authors_surname="Кинг",
+        authors_nationality="США",
+        genre_name="Роман",
+    )

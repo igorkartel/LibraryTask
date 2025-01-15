@@ -25,7 +25,7 @@ class Reader(BaseModel):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
     updated_by: Mapped[Optional[str]] = mapped_column(default=None)
 
-    orders: Mapped[list["Order"]] = relationship("Order", back_populates="reader")
+    orders: Mapped[list["Order"]] = relationship("Order", back_populates="reader", lazy="joined")
 
     def __str__(self):
         return f"{self.surname} {self.name}"
