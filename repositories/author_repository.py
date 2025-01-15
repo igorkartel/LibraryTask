@@ -6,6 +6,7 @@ from models import Author
 from repositories.abstract_repositories import AbstractAuthorRepository
 from schemas.author_schemas import (
     AuthorDeleteSchema,
+    AuthorListQueryParams,
     AuthorOrderBy,
     AuthorReadSchema,
     AuthorsListSchema,
@@ -39,7 +40,7 @@ class AuthorRepository(AbstractAuthorRepository):
 
         return author if author else None
 
-    async def get_all_authors(self, request_payload) -> AuthorsListSchema:
+    async def get_all_authors(self, request_payload: AuthorListQueryParams) -> AuthorsListSchema:
         query = select(Author)
         sort_column = getattr(Author, request_payload.sort_by)
 
@@ -52,7 +53,7 @@ class AuthorRepository(AbstractAuthorRepository):
         query = query.offset(offset).limit(request_payload.limit)
 
         result = await self.db.execute(query)
-        authors = result.scalars().all()
+        authors = result.unique().scalars().all()
 
         if not authors:
             raise AuthorDoesNotExist(message="No authors found")

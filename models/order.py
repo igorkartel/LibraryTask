@@ -35,11 +35,9 @@ class Order(BaseModel):
     closed_by: Mapped[Optional[str]] = mapped_column(default=None)
 
     book_instances: Mapped[List["BookInstance"]] = relationship(
-        "BookInstance",
-        secondary=order_book_instance_association,
-        back_populates="orders",
+        "BookInstance", secondary=order_book_instance_association, back_populates="orders", lazy="joined"
     )
-    reader: Mapped["Reader"] = relationship("Reader", back_populates="orders")
+    reader: Mapped["Reader"] = relationship("Reader", back_populates="orders", lazy="joined")
 
     def __str__(self):
         return f"Заказ №{self.id}_{self.reader.surname}_{self.order_date}"

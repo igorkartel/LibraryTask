@@ -31,16 +31,14 @@ class Book(BaseModel):
     updated_by: Mapped[Optional[str]] = mapped_column(default=None)
 
     authors: Mapped[list["Author"]] = relationship(
-        "Author",
-        secondary=author_book_association,
-        back_populates="books",
+        "Author", secondary=author_book_association, back_populates="books", lazy="joined"
     )
     genres: Mapped[list["Genre"]] = relationship(
-        "Genre",
-        secondary=genre_book_association,
-        back_populates="books",
+        "Genre", secondary=genre_book_association, back_populates="books", lazy="joined"
     )
-    instances: Mapped[list["BookInstance"]] = relationship("BookInstance", back_populates="book")
+    instances: Mapped[list["BookInstance"]] = relationship(
+        "BookInstance", back_populates="book", lazy="joined"
+    )
 
     def __str__(self):
         return self.title_rus
@@ -67,11 +65,9 @@ class BookInstance(BaseModel):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
     updated_by: Mapped[Optional[str]] = mapped_column(default=None)
 
-    book = relationship("Book", back_populates="instances")
+    book = relationship("Book", back_populates="instances", lazy="joined")
     orders: Mapped[List["Order"]] = relationship(
-        "Order",
-        secondary=order_book_instance_association,
-        back_populates="book_instances",
+        "Order", secondary=order_book_instance_association, back_populates="book_instances", lazy="joined"
     )
 
     def __str__(self):

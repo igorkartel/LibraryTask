@@ -89,7 +89,7 @@ async def test_get_author_by_id(unit_test_author_in_db, unit_mock_minio_usecase)
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_get_author_by_id_does_no_exist(unit_mock_minio_usecase):
+async def test_get_author_by_id_does_not_exist(unit_mock_minio_usecase):
     author_id = 1
 
     mock_author_repo = AsyncMock()
@@ -210,9 +210,9 @@ async def test_update_author(unit_test_user, unit_test_author_in_db, unit_mock_m
         author_id=author_id, updated_data=updated_data, file=None, username=unit_test_user["username"]
     )
 
-    assert result.name == unit_test_author_in_db["name"]
-    assert result.surname == unit_test_author_in_db["surname"]
-    assert result.nationality == unit_test_author_in_db["nationality"]
+    assert result.name == updated_data.name
+    assert result.surname == updated_data.surname
+    assert result.nationality == updated_data.nationality
 
     mock_author_repo.get_author_by_id.assert_awaited_once()
     mock_author_repo.update_author.assert_awaited_once()
