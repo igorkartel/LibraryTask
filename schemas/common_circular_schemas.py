@@ -31,6 +31,10 @@ class BookWithInstancesReadSchema(BookWithAuthorsGenresReadSchema):
     instances: List[BookInstanceReadSchema] = []
 
 
+class BookInstanceWithBookReadSchema(BookInstanceReadSchema):
+    book: BookWithAuthorsReadSchema
+
+
 class AuthorWithBooksReadSchema(AuthorReadSchema):
     books: List[BookReadSchema] = []
 

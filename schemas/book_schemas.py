@@ -84,21 +84,20 @@ class MapBookToExistingGenres(BaseModel):
 
 
 class BookInstanceCreateSchema(BaseModel):
-    book_id: int = None
-    imprint: int = None
-    pages: int = None
-    cover_s3_url: str = None
+    book_id: int | None = None
+    imprint_year: int | None = None
+    pages: int | None = None
+    cover_s3_url: str | None = None
     value: float
-    price_per_day: float = None
+    price_per_day: float | None = None
     status: BookStatusEnum = BookStatusEnum.AVAILABLE
-    created_by: str = None
-    updated_by: str = None
+    created_by: str | None = None
+    updated_by: str | None = None
 
     @classmethod
     def as_form(
         cls,
-        book_id: int | None = Form(default=None),
-        imprint: int | None = Form(default=None),
+        imprint_year: int | None = Form(default=None),
         pages: int | None = Form(default=None),
         cover_s3_url: str | None = Form(default=None),
         value: float = Form(),
@@ -108,8 +107,7 @@ class BookInstanceCreateSchema(BaseModel):
         updated_by: str | None = Form(default=None),
     ):
         return cls(
-            book_id=book_id,
-            imprint=imprint,
+            imprint_year=imprint_year,
             pages=pages,
             cover_s3_url=cover_s3_url,
             value=value,
@@ -126,16 +124,10 @@ class BookReadSchema(BookCreateSchema, BookBaseSchema):
 
 class BookInstanceReadSchema(BookInstanceCreateSchema, BookBaseSchema):
     id: int
-    imprint: int
-    pages: int
-    cover_s3_url: str
-    value: float
-    price_per_day: float
-    status: BookStatusEnum
 
 
-class BookInstanceWithBookReadSchema(BookInstanceReadSchema):
-    book: BookReadSchema
+class BookInstanceListSchema(BaseModel):
+    book_items: List[BookInstanceReadSchema] = []
 
 
 class BookUpdateSchema(BaseModel):
@@ -146,7 +138,7 @@ class BookUpdateSchema(BaseModel):
 
 
 class BookInstanceUpdateSchema(BaseModel):
-    imprint: int | None = None
+    imprint_year: int | None = None
     pages: int | None = None
     cover_s3_url: str | None = None
     value: float | None = None
@@ -157,7 +149,7 @@ class BookInstanceUpdateSchema(BaseModel):
     @classmethod
     def as_form(
         cls,
-        imprint: int | None = Form(default=None),
+        imprint_year: int | None = Form(default=None),
         pages: int | None = Form(default=None),
         cover_s3_url: str | None = Form(default=None),
         value: float | None = Form(default=None),
@@ -166,7 +158,7 @@ class BookInstanceUpdateSchema(BaseModel):
         updated_by: str | None = Form(default=None),
     ):
         return cls(
-            imprint=imprint,
+            imprint_year=imprint_year,
             pages=pages,
             cover_s3_url=cover_s3_url,
             value=value,
@@ -198,4 +190,20 @@ class BookListQueryParams(BaseModel):
     page: int = Query(1, gt=0)
     limit: int = 30
     sort_by: BookSortBy = BookSortBy.title_rus
+    order_by: BookOrderBy = BookOrderBy.asc
+
+
+class BookInstanceSortBy(str, Enum):
+    id = "id"
+    imprint_year = "imprint_year"
+    pages = "pages"
+    value = "value"
+    price_per_day = "price_per_day"
+    status = "status"
+
+
+class BookInstanceListQueryParams(BaseModel):
+    page: int = Query(1, gt=0)
+    limit: int = 30
+    sort_by: BookSortBy = BookInstanceSortBy.id
     order_by: BookOrderBy = BookOrderBy.asc
