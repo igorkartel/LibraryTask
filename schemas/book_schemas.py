@@ -126,10 +126,6 @@ class BookInstanceReadSchema(BookInstanceCreateSchema, BookBaseSchema):
     id: int
 
 
-class BookInstanceListSchema(BaseModel):
-    book_items: List[BookInstanceReadSchema] = []
-
-
 class BookUpdateSchema(BaseModel):
     title_rus: str | None = None
     title_origin: str | None = None
@@ -190,20 +186,4 @@ class BookListQueryParams(BaseModel):
     page: int = Query(1, gt=0)
     limit: int = 30
     sort_by: BookSortBy = BookSortBy.title_rus
-    order_by: BookOrderBy = BookOrderBy.asc
-
-
-class BookInstanceSortBy(str, Enum):
-    id = "id"
-    imprint_year = "imprint_year"
-    pages = "pages"
-    value = "value"
-    price_per_day = "price_per_day"
-    status = "status"
-
-
-class BookInstanceListQueryParams(BaseModel):
-    page: int = Query(1, gt=0)
-    limit: int = 30
-    sort_by: BookSortBy = BookInstanceSortBy.id
     order_by: BookOrderBy = BookOrderBy.asc

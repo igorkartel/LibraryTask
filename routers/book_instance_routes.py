@@ -2,8 +2,11 @@ from fastapi import APIRouter, Depends, File, Path, UploadFile
 
 from dependencies.auth_dependencies import get_current_active_user
 from dependencies.usecase_dependencies import get_book_instance_usecase
-from schemas.book_schemas import BookInstanceCreateSchema
-from schemas.common_circular_schemas import BookInstanceWithBookReadSchema
+from schemas.book_schemas import BookInstanceCreateSchema, BookInstanceUpdateSchema
+from schemas.common_circular_schemas import (
+    BookInstanceWithBookReadSchema,
+    BookWithInstancesReadSchema,
+)
 from schemas.user_schemas import UserReadSchema
 from usecases.book_instance_usecases import BookInstanceUseCase
 
@@ -25,5 +28,37 @@ async def create_new_book_instance(
 
 
 @router.get("/{book_instance_id}", response_model=BookInstanceWithBookReadSchema)
-async def get_book_instance_by_id():
-    pass
+async def get_book_instance_by_id(
+    book_instance_id: int,
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    usecase: BookInstanceUseCase = Depends(get_book_instance_usecase),
+):
+    """Allows the authenticated user with any role to get any book instance by id"""
+    return await usecase.get_book_instance_by_id(book_instance_id=book_instance_id)
+
+
+@router.get("/all_by_book_id/{book_id}", response_model=BookWithInstancesReadSchema)
+async def get_all_instances_by_book_id(
+    book_id: int,
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    usecase: BookInstanceUseCase = Depends(get_book_instance_usecase),
+):
+    """Allows the authenticated user with any role to get a book by title with all its instances"""
+    return await usecase.get_all_instances_by_book_id(book_id=book_id)
+
+
+@router.patch("/{book_instance_id}")
+async def update_book_instance(
+    book_instance_id: int,
+    updated_data: BookInstanceUpdateSchema = Depends(BookInstanceUpdateSchema.as_form),
+    current_user: UserReadSchema = Depends(get_current_active_user),
+    usecase: BookInstanceUseCase = Depends(get_book_instance_usecase),
+    file: UploadFile | None = File(None),
+):
+    """Allows the authenticated user with any role to update a book instance of the existing book"""
+    return await usecase.update_book_instance(
+        book_instance_id=book_instance_id,
+        book_item_to_update=updated_data,
+        file=file,
+        username=current_user.username,
+    )

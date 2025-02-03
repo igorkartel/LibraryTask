@@ -141,7 +141,7 @@ class AbstractBookInstanceRepository(ABC):
         self.db = db
 
     @abstractmethod
-    async def create_new_book_instance(self, new_book_instance):
+    async def create_new_book_instance(self, book, new_book_instance):
         pass
 
     @abstractmethod
@@ -149,7 +149,7 @@ class AbstractBookInstanceRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_all_instances_by_book_title(self, request_payload):
+    async def get_all_instances_by_book_id(self, book_id):
         pass
 
     @abstractmethod
