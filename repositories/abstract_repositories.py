@@ -153,11 +153,11 @@ class AbstractBookInstanceRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_book_instance(self, book_item_to_update):
+    async def update_book_instance(self, book, book_item_to_update):
         pass
 
     @abstractmethod
-    async def delete_book_instance(self, book_item_to_delete):
+    async def delete_book_instance(self, book, book_item_to_delete):
         pass
 
 
