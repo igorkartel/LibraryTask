@@ -17,10 +17,9 @@ async def test_create_new_book_instance(
     headers = {"Authorization": f"Bearer {access_token}"}
 
     book = await async_client.post("/book/new_book", json=test_book, headers=headers)
+    author_id = 2
 
-    author = await async_client.post("/author/new", data=test_author, files=mock_file, headers=headers)
-
-    mapping_request = {"book_id": book.json()["id"], "author_ids": [author.json()["id"]]}
+    mapping_request = {"book_id": book.json()["id"], "author_ids": [author_id]}
 
     await async_client.post("/book/map_to_authors", json=mapping_request, headers=headers)
 
@@ -59,11 +58,12 @@ async def test_get_all_instances_by_book_id(async_client: AsyncClient, test_user
     access_token = login_response.json()["access_token"]
 
     headers = {"Authorization": f"Bearer {access_token}"}
+    book_id = 3
 
-    response = await async_client.get(f"/book_items/all_by_book_id/{test_book["id"]}", headers=headers)
+    response = await async_client.get(f"/book_items/all_by_book_id/{book_id}", headers=headers)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["id"] == test_book["id"]
+    assert response.json()["id"] == book_id
 
 
 @pytest.mark.integration
