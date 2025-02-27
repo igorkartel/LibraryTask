@@ -144,3 +144,30 @@ def unit_test_book_with_author_and_genre():
         authors_nationality="США",
         genre_name="Роман",
     )
+
+
+@pytest.fixture
+def unit_test_book_instance():
+    return dict(
+        imprint_year=2025,
+        pages=300,
+        value=30,
+    )
+
+
+@pytest.fixture
+def unit_test_book_instance_in_db():
+    return dict(
+        id=1,
+        book_id=1,
+        imprint_year=2025,
+        pages=300,
+        cover_s3_url=f"{settings.MINIO_URL_TO_OPEN_FILE}/minio-s3-bucket/test.jpg",
+        value=30,
+        price_per_day=1,
+        status="available",
+        created_at="2025-02-27 13:50:17.494935",
+        updated_at="2025-02-27 14:00:50.788192",
+        created_by="librarian",
+        updated_by=None,
+    )

@@ -231,3 +231,16 @@ def test_book_with_author_and_genre():
         authors_nationality="Россия",
         genre_name="Роман",
     )
+
+
+@pytest.fixture
+def test_book_instance():
+    return dict(
+        id=1,
+        imprint_year=2025,
+        pages=300,
+        value=30,
+        price_per_day=0,
+        created_by=None,
+        updated_by=None,
+    )
